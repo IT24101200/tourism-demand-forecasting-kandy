@@ -1,8 +1,18 @@
-# Git ignore rules for the Tourist Forecast DSS project
+# ─── Security (KEEP THESE) ────────────────────────
 .env
-*.pkl
-*.h5
-*.keras
-models/
-__pycache__/
 .streamlit/secrets.toml
+
+# ─── Python System (KEEP THESE) ───────────────────
+__pycache__/
+*.py[cod]
+
+# ─── Machine Learning Models (MODIFIED) ───────────
+# We REMOVE the dots/stars so these files CAN be uploaded
+# # *.pkl
+# # *.h5
+# # *.keras
+# # models/
+
+# ─── Large Data (OPTIONAL) ────────────────────────
+# If your raw CSV datasets are huge, keep them ignored
+# data/
