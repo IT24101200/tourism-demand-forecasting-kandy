@@ -1,0 +1,8 @@
+# Git ignore rules for the Tourist Forecast DSS project
+.env
+*.pkl
+*.h5
+*.keras
+models/
+__pycache__/
+.streamlit/secrets.toml

@@ -1,0 +1,282 @@
+--- NAMES ---
+pathlib
+Path
+datetime
+json
+pandas
+pd
+streamlit
+st
+plotly.graph_objects
+graph_objects
+go
+plotly.subplots
+make_subplots
+plotly.express
+express
+px
+utils.sidebar
+render_sidebar
+utils.auth
+require_auth
+utils.theme
+apply_plotly_theme
+apply_custom_theme
+set_page_config
+markdown
+_weather_controls
+sidebar
+multiselect
+list
+range
+SEL_YEARS
+slider
+RAIN_THRESH
+checkbox
+SHOW_FUTURE_ONLY
+divider
+__file__
+parent
+BASE_DIR
+cache_data
+load_weather_weekly
+load_festival_weekly
+wdf
+fdf
+date
+today
+timedelta
+next_week_start
+two_weeks_out
+merge_asof
+sort_values
+merged_all
+dt
+year
+cache_path
+exists
+max
+curr_max_date
+read_csv
+cdf
+to_datetime
+new_rows
+iterrows
+_
+row
+loads
+feats
+pf
+get
+rain
+impact
+append
+DataFrame
+future_df
+concat
+reset_index
+copy
+merged
+empty
+tail
+info
+isin
+stop
+image
+len
+total_weeks
+sum
+monsoon_wks
+heavy_wks
+columns
+mean
+avg_temp
+int
+fig
+add_trace
+Scatter
+dict
+Bar
+monsoon_periods
+add_vrect
+Timedelta
+update_layout
+update_yaxes
+plotly_chart
+col_a
+col_b
+scatter
+fig_scatter
+update_traces
+future_alerts
+alerts_shown
+strftime
+week_str
+rain_val
+is_monsoon
+kind
+icon
+days
+days_from_now
+when
+title
+predicted
+tip
+month
+groupby
+agg
+monthly
+Figure
+fig_monthly
+--- CONSTS ---
+'Weather Impact | Kandy Tourism DSS'
+'🌦️'
+'wide'
+'\n<style>\n@import url(\'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap\');\nhtml, body, [class*="css"] { font-family: \'Inter\', sans-serif; }\nsection[data-testid="stSidebar"] ~ div {\n    background: linear-gradient(135deg,#06101e 0%,#0f1f36 50%,#091525 100%) !important;\n}\n.hero-banner {\n    background: linear-gradient(135deg,rgba(56,189,248,.18) 0%,rgba(16,185,129,.12) 100%);\n    border:1px solid rgba(56,189,248,.3); border-radius:18px;\n    padding:30px 36px; margin-bottom:28px; position:relative; overflow:hidden;\n}\n.hero-banner::before {\n    content:\'🌦️\'; position:absolute; right:30px; top:50%; transform:translateY(-50%);\n    font-size:5rem; opacity:.12;\n}\n.hero-title{font-size:2rem;font-weight:800;color:#e0e7ff;margin:0 0 6px;}\n.hero-sub{color:#94a3b8;font-size:.95rem;}\n\n.alert-card {\n    border-radius:14px; padding:16px 20px; margin-bottom:12px;\n    border-left:4px solid; display:flex; align-items:flex-start; gap:14px;\n}\n.alert-monsoon { background:rgba(59,130,246,.12); border-color:#3b82f6; }\n.alert-heavy   { background:rgba(248,113,113,.12); border-color:#f87171; }\n.alert-ok      { background:rgba(52,211,153,.10); border-color:#34d399; }\n.alert-icon { font-size:1.5rem; flex-shrink:0; }\n.alert-text h4 { color:#e0e7ff; margin:0 0 4px; font-size:.95rem; font-weight:700; }\n.alert-text p  { color:#94a3b8; margin:0; font-size:.82rem; }\n\n.section-header {\n    color:#94a3b8;font-size:.7rem;font-weight:700;letter-spacing:.12em;\n    text-transform:uppercase;margin:24px 0 12px;\n    padding-bottom:6px;border-bottom:1px solid rgba(56,189,248,.2);\n}\n.stat-pill {\n    display:inline-block;background:rgba(56,189,248,.12);\n    border:1px solid rgba(56,189,248,.3);border-radius:8px;\n    padding:4px 12px;font-size:.78rem;color:#38bdf8;margin:3px;\n}\n</style>\n'
+  --- NAMES ---
+  st
+  markdown
+  multiselect
+  list
+  range
+  slider
+  --- CONSTS ---
+  '### 🔍 Filter'
+  'Years'
+  'Heavy Rain threshold (mm/week)'
+'### 🔍 Filter'
+'Years'
+'Heavy Rain threshold (mm/week)'
+'Future weeks only ✔️'
+'Weather Impact'
+  --- NAMES ---
+  pd
+  read_csv
+  BASE_DIR
+  to_datetime
+  dt
+  to_period
+  apply
+  groupby
+  agg
+  reset_index
+  --- CONSTS ---
+  'Aggregate daily weather CSV to weekly averages.'
+  'Kandy_Weather_Dataset_Extended.csv'
+  'time'
+  'date'
+  'W'
+    --- NAMES ---
+    start_time
+    --- CONSTS ---
+  'week'
+  --- NAMES ---
+  pd
+  read_csv
+  BASE_DIR
+  to_datetime
+  --- CONSTS ---
+  'kandy_festival_demand_NOMISSING.csv'
+  'week_start'
+'week_start'
+'week'
+'nearest'
+'year'
+'models/predictions_cache.csv'
+'model_name'
+'random_forest'
+'features_used'
+'Normal'
+'is_esala_perahera'
+'Esala_Perahera'
+'is_vesak'
+'Vesak'
+'is_poson_perahera'
+'Poson_Perahera'
+'avg_weekly_rainfall_mm'
+'Favorable'
+'Moderate'
+'Unfavorable'
+'avg_temp_celsius'
+'is_monsoon_week'
+'predicted_arrivals'
+'ℹ️ No future weather data in dataset — showing latest available weeks.'
+'ℹ️ No weather data available to display at the moment.'
+'https://images.unsplash.com/photo-1528659556771-419b4ba1eb7b?q=80&w=1600&auto=format&fit=crop'
+'\n<div style="padding:10px 0px 20px 0px;">\n  <div style="font-size:2.2rem;font-weight:800;color:#0A2540;">\n    🌦️ Weather Predictor &amp; Impact\n  </div>\n  <div style="color:#1E293B;font-size:1.05rem;font-weight:500;">\n        Upcoming weather outlook for Kandy — monitor rainfall, temperature and monsoon\n        conditions for the next 7–14 days and their impact on tourist arrivals.\n  </div>\n</div>\n'
+'avg_temp'
+'<div><span class="stat-pill">📅 '
+' weeks shown</span><span class="stat-pill">🌧️ '
+' monsoon weeks</span><span class="stat-pill">⛈️ '
+' heavy rain weeks (>'
+' mm)</span><span class="stat-pill">🌡️ '
+'.1f'
+'°C avg temp</span></div><br>'
+'<div class="section-header">📈 Temperature & Rainfall Trend</div>'
+'secondary_y'
+'Avg Temp (°C)'
+'lines'
+'#f97316'
+'tozeroy'
+'rgba(249,115,22,.08)'
+'Weekly Rainfall (mm)'
+  --- NAMES ---
+  RAIN_THRESH
+  --- CONSTS ---
+  'rgba(248,113,113,.8)'
+  'rgba(56,189,248,.5)'
+'rgba(99,102,241,.05)'
+''
+'below'
+'rgba(0,0,0,0)'
+'#94a3b8'
+'#1e293b'
+'#64748b'
+'Temperature (°C)'
+'color'
+'Rainfall (mm)'
+'#38bdf8'
+'<div class="section-header">🔗 Rainfall vs Tourist Arrivals Correlation</div>'
+'estimated_weekly_kandy_arrivals'
+'weather_impact_on_tourism'
+'#34d399'
+'#fbbf24'
+'#f87171'
+'primary_festival'
+'Weekly Arrivals'
+'Weather Impact on Tourist Arrivals'
+'<div class="section-header">⚠️ Weather Impact Alerts</div>'
+'%d %b %Y'
+'alert-heavy'
+'alert-monsoon'
+'⛈️'
+'🌧️'
+'next week'
+'in two weeks'
+'Heavy Rain '
+'Monsoon Week '
+'<b>'
+','
+' expected arrivals.</b> '
+'.0f'
+' mm rainfall forecast. Recommend indoor activities: Kandy Museum, Tea Factory tours, Spice Garden visits.'
+'\n            <div class="alert-card '
+'">\n                <div class="alert-icon">'
+'</div>\n                <div class="alert-text"><h4>'
+'</h4><p>'
+'</p></div>\n            </div>'
+'\n        <div class="alert-card alert-ok">\n            <div class="alert-icon">☀️</div>\n            <div class="alert-text">\n                <h4>All Clear — Favourable Conditions</h4>\n                <p>No high-rainfall weeks in the recent period. Great time for outdoor tourism!</p>\n            </div>\n        </div>'
+'<div class="section-header">🗓️ Monthly Climate Pattern (Average)</div>'
+'month'
+'%m'
+'%b'
+'month_name'
+'rain'
+'Avg Rain (mm)'
+'rgba(56,189,248,.7)'
+'arrivals'
+'Avg Arrivals'
+'lines+markers'
+'y2'
+'y'
+'right'

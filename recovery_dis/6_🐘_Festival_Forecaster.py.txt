@@ -1,0 +1,290 @@
+--- NAMES ---
+pathlib
+Path
+datetime
+json
+pandas
+pd
+streamlit
+st
+plotly.graph_objects
+graph_objects
+go
+plotly.express
+express
+px
+utils.sidebar
+render_sidebar
+utils.auth
+require_auth
+utils.theme
+apply_plotly_theme
+set_page_config
+apply_custom_theme
+markdown
+__file__
+parent
+BASE_DIR
+cache_data
+load_festival
+df
+date
+today
+timedelta
+next_week_start
+thirty_days_out
+Timestamp
+today_pd
+next_week_pd
+thirty_days_pd
+sort_values
+upcoming_30
+image
+FESTIVAL_META
+empty
+iterrows
+_
+urow
+replace
+fest_name
+days
+days_ahead
+get
+meta
+icon
+mult
+int
+pred_arr
+error
+warning
+strftime
+groupby
+agg
+reset_index
+fst_stats
+mean
+normal_avg
+sidebar
+tolist
+all_festivals
+multiselect
+sel_fests
+checkbox
+show_covid
+divider
+copy
+df_plot
+isin
+head
+filtered_stats
+columns
+len
+cols
+enumerate
+i
+row
+surge
+chart_df
+str
+map
+Figure
+Bar
+dict
+zip
+fig_bar
+update_layout
+max
+plotly_chart
+col_l
+col_r
+current_month_start
+timeline
+max_year
+scatter
+items
+fig_time
+update_traces
+top3
+weeks
+img_url
+esala
+iloc
+esala_pct
+info
+--- CONSTS ---
+'Festival Forecaster | Kandy Tourism DSS'
+'🐘'
+'wide'
+'\n<style>\n@import url(\'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap\');\nhtml, body, [class*="css"] { font-family: \'Inter\', sans-serif; }\n\n.section-header{\n    color:#1E293B;font-size:1rem;font-weight:700;letter-spacing:.05em;\n    text-transform:uppercase;margin:24px 0 12px;\n    padding-bottom:6px;border-bottom:2px solid var(--tropical-green);\n}\n.festival-stat {\n    background: rgba(255, 255, 255, 0.95);\n    border:1px solid rgba(0,0,0,.05);border-radius:14px;\n    padding:18px 16px;text-align:center;\n    box-shadow: 0 4px 6px rgba(0,0,0,0.05);\n}\n.fs-icon{font-size:2rem;margin-bottom:6px;}\n.fs-name{color:#0A2540;font-size:.85rem;font-weight:700;letter-spacing:.02em;text-transform:uppercase;}\n.fs-pct{font-size:2rem;font-weight:800;color:var(--tropical-green);}\n.fs-sub{color:#64748b;font-size:.8rem;font-weight:500;}\n.insight-box{\n    background: white;\n    border:1px solid rgba(0,0,0,.05);border-radius:12px;\n    padding:14px 18px;margin-bottom:10px;\n    box-shadow: 0 4px 6px rgba(0,0,0,0.05);\n    display: flex;\n    gap: 16px;\n    align-items: center;\n}\n.insight-box img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover;}\n.insight-text h4{color:#0A2540;margin:0 0 4px;font-size:.95rem;}\n.insight-text p{color:#475569;margin:0;font-size:.85rem;}\n</style>\n'
+'Festival Forecaster'
+  --- NAMES ---
+  pd
+  read_csv
+  BASE_DIR
+  to_datetime
+  exists
+  max
+  iterrows
+  json
+  loads
+  get
+  append
+  DataFrame
+  concat
+  sort_values
+  reset_index
+  --- CONSTS ---
+  'kandy_festival_demand_NOMISSING.csv'
+  'week_start'
+  'models/predictions_cache.csv'
+  'model_name'
+  'random_forest'
+  'features_used'
+  'Normal'
+  'is_esala_perahera'
+  'Esala_Perahera'
+  'is_esala_preparation'
+  'Esala_Prep'
+  'is_poson_perahera'
+  'Poson_Perahera'
+  'is_vesak'
+  'Vesak'
+  'is_sinhala_tamil_new_year'
+  'Sinhala_Tamil_New_Year'
+  'is_christmas_new_year'
+  'Christmas_New_Year'
+  'is_deepavali'
+  'Deepavali'
+  'is_thai_pongal'
+  'Thai_Pongal'
+  'is_august_buildup'
+  'August_Buildup'
+  'predicted_arrivals'
+  'festival_demand_multiplier'
+'week_start'
+'primary_festival'
+'Normal'
+'https://images.unsplash.com/photo-1620608518882-628d71688cc3?q=80&w=1600&auto=format&fit=crop'
+'\n<div style="padding:10px 0px 20px 0px;">\n    <div style="font-size:2.2rem;font-weight:800;color:#0A2540;">🐘 Festival Forecaster</div>\n    <div style="color:#1E293B;font-size:1.05rem;font-weight:500;">\n        Discover upcoming festivals in Kandy and how they drive tourist surges.\n        Plan ahead for Esala Perahera, Vesak, Poson, Deepavali and more.\n    </div>\n</div>'
+'#fbbf24'
+'The world-famous Kandy Esala Perahera — 10-day Buddhist pageant with decorated elephants.'
+'🎺'
+'#f97316'
+'Preparation weeks leading up to Esala Perahera. Hotels fill fast, prices surge.'
+'🏯'
+'#a78bfa'
+"Poson Poya festival celebrating Buddhism's arrival in Sri Lanka."
+'🪔'
+'#34d399'
+"Vesak Poya — the holiest Buddhist festival marking Buddha's birth, enlightenment & death."
+'✨'
+'#f87171'
+'Deepavali — Festival of Lights celebrated by Tamil Hindus across Sri Lanka.'
+'🎊'
+'#38bdf8'
+'Sinhala & Tamil New Year — nationwide celebration drawing domestic & diaspora tourists.'
+'🎄'
+'#10b981'
+'Christmas & New Year period — peak international tourist season for Kandy.'
+'🌕'
+'#818cf8'
+'Full-moon (Poya) public holidays — temples fill with devotees and cultural visitors.'
+'📈'
+'#fb923c'
+'August pre-festival buildup — arrivals rise as tourists book ahead for Esala Perahera.'
+'🌾'
+'#86efac'
+'Thai Pongal — Tamil harvest festival, popular especially in the Hill Country.'
+'_'
+' '
+'icon'
+'🎉'
+'festival_demand_multiplier'
+'estimated_weekly_kandy_arrivals'
+'🚨 **Upcoming Event Alert: '
+' next week** — Prepare for a surge! Demand multiplier: ×'
+'.2f'
+'. **Expected Arrivals: '
+','
+'**. Coordinate staffing, transport and accommodation NOW.'
+'⏰ **'
+'** in '
+' days (week of '
+'%d %b %Y'
+'). Expected demand multiplier: ×'
+'. **Predicted Arrivals: '
+'**.'
+'avg_arrivals'
+'surge_pct'
+'### 🎪 Festival Filter'
+'Select Festivals'
+  --- NAMES ---
+  replace
+  --- CONSTS ---
+  '_'
+  ' '
+'Include COVID period'
+'is_covid_period'
+'<div class="section-header">🎯 Festival Impact on Tourist Arrivals</div>'
+'#94a3b8'
+'\n        <div class="festival-stat">\n            <div class="fs-icon">'
+'</div>\n            <div class="fs-name">'
+'</div>\n            <div class="fs-pct">+'
+'.0f'
+'%</div>\n            <div class="fs-sub">'
+' avg arrivals/wk</div>\n        </div>'
+'<br>'
+'<div class="section-header">📊 Demand Multiplier by Festival</div>'
+'label'
+  --- NAMES ---
+  FESTIVAL_META
+  get
+  --- CONSTS ---
+  'color'
+  '#6366f1'
+'color'
+'avg_multiplier'
+'h'
+'rgba(255,255,255,.1)'
+  --- NAMES ---
+  --- CONSTS ---
+  '×'
+  '.2f'
+  '  (+'
+  '.0f'
+  '%)'
+'outside'
+'<b>%{y}</b><br>Multiplier: %{x:.2f}<extra></extra>'
+'rgba(0,0,0,0)'
+'Demand Multiplier'
+'#1e293b'
+'#64748b'
+'#e0e7ff'
+'<div class="section-header">📅 Annual Festival Arrival Timeline</div>'
+'year'
+'is_upcoming'
+  --- NAMES ---
+  --- CONSTS ---
+  'color'
+'Festival Arrival Timeline — From Current Month Forward'
+'Week'
+'Arrivals'
+'Festival'
+''
+'<div class="section-header">💡 Festival Insights Engine</div>'
+'num_weeks'
+'https://images.unsplash.com/photo-1620608518882-628d71688cc3?q=80&w=150&auto=format&fit=crop'
+'Esala_Perahera'
+'https://images.unsplash.com/photo-1623910271131-ab85d30ddc54?q=80&w=150'
+'\n        <div class="insight-box">\n            <img src="'
+'">\n            <div class="insight-text">\n                <h4>'
+' — +'
+'.1f'
+'% surge</h4>\n                <p>'
+'desc'
+'Cultural event with significant tourism impact.'
+'<br>\n                   Observed across '
+' historical weeks. <b>'
+' arrivals/week.</b></p>\n            </div>\n        </div>'
+'🐘 **Esala Perahera** causes a **'
+'% surge** over normal weeks — the single largest tourism driver in Kandy.'
