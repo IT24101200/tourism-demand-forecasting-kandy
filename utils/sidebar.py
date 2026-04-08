@@ -156,7 +156,13 @@ def render_sidebar(active_page: str = "", extra_content=None):
         # ── Navigation ─────────────────────────────────────────
         st.markdown('<div class="sb-label">Navigation</div>', unsafe_allow_html=True)
 
-        for icon, label, path in _NAV_PAGES:
+        # Conditionally append Admin panel
+        nav_pages = list(_NAV_PAGES)
+        profile = st.session_state.get("user_profile")
+        if profile and profile.get("role") == "System Administrator":
+            nav_pages.append(("⚙️", "System Admin", "pages/9_⚙️_System_Admin.py"))
+
+        for icon, label, path in nav_pages:
             if label.lower() == active_page.lower():
                 # Active page: styled div (no link needed — already here)
                 st.markdown(

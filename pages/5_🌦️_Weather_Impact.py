@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 import datetime
 import json
+import pickle
 import pandas as pd
 import streamlit as st
 import plotly.express as px
@@ -50,16 +51,25 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-def _weather_controls():
-    st.sidebar.markdown('### 🔍 Filter')
-    SEL_YEARS = st.sidebar.multiselect('Years', list(range(2015, 2030)), default=list(range(2023, 2027)))
-    RAIN_THRESH = st.sidebar.slider('Heavy Rain threshold (mm/week)', 100, 400, 150)
-    SHOW_FUTURE_ONLY = st.sidebar.checkbox('Future weeks only ✔️', value=False)
-    st.sidebar.divider()
-    return SEL_YEARS, RAIN_THRESH, SHOW_FUTURE_ONLY
-
-SEL_YEARS, RAIN_THRESH, SHOW_FUTURE_ONLY = _weather_controls()
 render_sidebar(active_page="Weather Impact")
+
+render_page_banner(
+    title="Weather Predictor & Impact",
+    subtitle="Upcoming weather outlook for Kandy — monitor rainfall, temperature and monsoon conditions and their effect on tourist arrivals.",
+    icon="🌦️",
+)
+
+with st.container():
+    c1, c2, c3 = st.columns([4, 4, 3])
+    with c1:
+        SEL_YEARS = st.multiselect('Years', list(range(2015, 2030)), default=list(range(2023, 2027)))
+    with c2:
+        RAIN_THRESH = st.slider('Heavy Rain threshold (mm/week)', 100, 400, 150)
+    with c3:
+        st.write("")
+        st.write("")
+        SHOW_FUTURE_ONLY = st.checkbox('Future weeks only ✔️', value=False)
+    st.divider()
 
 BASE_DIR = Path(__file__).parent.parent
 
@@ -112,11 +122,7 @@ if df_all.empty:
 
 
 
-render_page_banner(
-    title="Weather Predictor & Impact",
-    subtitle="Upcoming weather outlook for Kandy — monitor rainfall, temperature and monsoon conditions and their effect on tourist arrivals.",
-    icon="🌦️",
-)
+
 
 total_weeks = len(df_all)
 monsoon_wks = int(df_all["is_monsoon_week"].sum()) if "is_monsoon_week" in df_all.columns else 0
@@ -259,3 +265,63 @@ if "avg_weekly_rainfall_mm" in df_all.columns:
         yaxis2=dict(gridcolor="rgba(0,0,0,0)", showgrid=False, tickfont=dict(color="#87929a"))
     )
     st.plotly_chart(apply_plotly_theme(fig_monthly), use_container_width=True)
+
+st.markdown('<div class="section-header">🧠 AI Feature Importance Analysis</div>', unsafe_allow_html=True)
+st.markdown("This chart extracts the exact predictive weights from the underlying Machine Learning model to demonstrate how significantly **Weather Conditions** (like Rainfall and Temperature) impact tourist demand compared to calendar and festival factors. This fulfills the *Feature Importance Analysis* mitigation strategy.", unsafe_allow_html=True)
+
+try:
+    RF_PATH = BASE_DIR / "models" / "rf_model.pkl"
+    SCALER_PATH = BASE_DIR / "models" / "feature_scaler.pkl"
+    
+    if RF_PATH.exists() and SCALER_PATH.exists():
+        with open(RF_PATH, "rb") as f:
+            rf_model = pickle.load(f)
+        with open(SCALER_PATH, "rb") as f:
+            scaler_obj = pickle.load(f)
+            
+        feat_cols = []
+        if isinstance(scaler_obj, tuple) and len(scaler_obj) > 1:
+            feat_cols = scaler_obj[1]
+        elif hasattr(rf_model, "feature_names_in_"):
+            feat_cols = rf_model.feature_names_in_
+            
+        if hasattr(rf_model, "feature_importances_") and feat_cols:
+            importances = rf_model.feature_importances_
+            # Create a dataframe of top features
+            imp_df = pd.DataFrame({"Feature": feat_cols, "Importance": importances})
+            imp_df = imp_df.sort_values(by="Importance", ascending=True)
+            
+            # Filter to keep weather features and top other features to not crowd the chart
+            weather_features = ["avg_weekly_rainfall_mm", "avg_temp_celsius", "avg_humidity_pct", "is_monsoon_week"]
+            imp_df["Color"] = imp_df["Feature"].apply(lambda x: "#38bdf8" if x in weather_features else "#4edea3")
+            
+            # Take top 10 features plus any weather features that might not be in top 10
+            top_10 = imp_df.tail(10)
+            weather_df = imp_df[imp_df["Feature"].isin(weather_features)]
+            plot_df = pd.concat([top_10, weather_df]).drop_duplicates().sort_values(by="Importance", ascending=True)
+            
+            # Format feature names
+            plot_df["Feature"] = plot_df["Feature"].str.replace("_", " ").str.title()
+            
+            fig_imp = px.bar(
+                plot_df, x="Importance", y="Feature", orientation="h",
+                color="Color", color_discrete_map="identity",
+                title="Model Feature Weights (Random Forest / XGBoost)"
+            )
+            fig_imp.update_layout(
+                height=400, margin=dict(l=0, r=20, t=40, b=0),
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                xaxis=dict(gridcolor="rgba(62,72,79,0.15)", tickfont=dict(color="#bdc8d1")),
+                yaxis=dict(gridcolor="rgba(0,0,0,0)", tickfont=dict(color="#bdc8d1")),
+                title=dict(font=dict(color="#dae2fd", family="Manrope")),
+                showlegend=False
+            )
+            
+            st.plotly_chart(apply_plotly_theme(fig_imp), use_container_width=True)
+        else:
+            st.info("Feature importance data not found in the trained model.")
+    else:
+        st.warning("⚠️ Trained models not found. Please run the training pipeline to generate Feature Importance.")
+except Exception as e:
+    st.error(f"Could not load Feature Importance Analysis. Error: {str(e)}")
+

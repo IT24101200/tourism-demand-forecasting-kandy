@@ -59,6 +59,18 @@ def apply_custom_theme():
             color: {theme['text_main']} !important;
         }}
 
+        /* ── Aggressive Text Overrides for Light Mode Visibility ──── */
+        p, label, .stMarkdown, .stText, [data-testid="stWidgetLabel"] p, [data-testid="stMarkdownContainer"] p {{
+            color: {theme['text_main']} !important;
+        }}
+        [data-testid="stMetricLabel"] {{
+            color: {theme['text_muted']} !important;
+        }}
+        .stTooltipIcon > svg {{
+            stroke: {theme['text_muted']} !important;
+            fill: none !important;
+        }}
+
         /* ── Hide Streamlit chrome ────────────────── */
         #MainMenu {{visibility: hidden;}}
         footer    {{visibility: hidden;}}
@@ -411,58 +423,95 @@ def render_metric_card(title, value, delta=None, icon="", positive_trend=False):
 
 @st.cache_data(ttl=3600)
 def get_current_week_prediction():
+    """
+    Returns the predicted arrivals for the current week.
+    Priority: Supabase predictions table → local predictions_cache.csv
+    Cache TTL: 1 hour (auto-refreshes after retrain pushes new data)
+    """
+    import pandas as pd
+    import datetime
+    from pathlib import Path
+
+    today = pd.Timestamp(datetime.date.today())
+
+    # 1. Try Supabase first
     try:
-        import pandas as pd
-        from pathlib import Path
-        import datetime
-        
-        cache_path = Path(__file__).parent.parent / "models" / "predictions_cache.csv"
-        if not cache_path.exists(): 
-            return None
-            
-        df = pd.read_csv(cache_path)
-        df["week_start"] = pd.to_datetime(df["week_start"])
-        df["week_end"] = pd.to_datetime(df["week_end"])
-        df = df[df["model_name"] == "random_forest"]
-        
-        today = pd.Timestamp(datetime.date.today())
-        current = df[(df["week_start"] <= today) & (df["week_end"] >= today)]
-        
-        if not current.empty:
-            return int(current.iloc[0]["predicted_arrivals"])
-            
-        # Fallback to closest future week
-        future = df[df["week_start"] >= today]
-        if not future.empty:
-            return int(future.iloc[0]["predicted_arrivals"])
+        from utils.db import fetch_predictions
+        df = fetch_predictions()
+        if not df.empty:
+            df["week_start"] = pd.to_datetime(df["week_start"])
+            df["week_end"]   = pd.to_datetime(df["week_end"])
+            df = df[df["model_name"] == "random_forest"].sort_values("week_start")
+            current = df[(df["week_start"] <= today) & (df["week_end"] >= today)]
+            if not current.empty:
+                return int(current.iloc[0]["predicted_arrivals"])
+            # fallback: closest upcoming week
+            future = df[df["week_start"] >= today]
+            if not future.empty:
+                return int(future.iloc[0]["predicted_arrivals"])
     except Exception:
         pass
+
+    # 2. Fallback: local CSV cache
+    try:
+        cache_path = Path(__file__).parent.parent / "models" / "predictions_cache.csv"
+        if cache_path.exists():
+            df = pd.read_csv(cache_path)
+            df["week_start"] = pd.to_datetime(df["week_start"])
+            df["week_end"]   = pd.to_datetime(df["week_end"])
+            df = df[df["model_name"] == "random_forest"]
+            current = df[(df["week_start"] <= today) & (df["week_end"] >= today)]
+            if not current.empty:
+                return int(current.iloc[0]["predicted_arrivals"])
+            future = df[df["week_start"] >= today]
+            if not future.empty:
+                return int(future.iloc[0]["predicted_arrivals"])
+    except Exception:
+        pass
+
     return None
+
 
 @st.cache_data(ttl=3600)
 def get_next_week_prediction():
+    """
+    Returns the predicted arrivals for next week.
+    Priority: Supabase predictions table → local predictions_cache.csv
+    Cache TTL: 1 hour (auto-refreshes after retrain pushes new data)
+    """
+    import pandas as pd
+    import datetime
+    from pathlib import Path
+
+    today      = pd.Timestamp(datetime.date.today())
+    next_week  = today + pd.Timedelta(days=7)
+
+    # 1. Try Supabase first
     try:
-        import pandas as pd
-        from pathlib import Path
-        import datetime
-        
-        cache_path = Path(__file__).parent.parent / "models" / "predictions_cache.csv"
-        if not cache_path.exists(): 
-            return None
-            
-        df = pd.read_csv(cache_path)
-        df["week_start"] = pd.to_datetime(df["week_start"])
-        df = df[df["model_name"] == "random_forest"]
-        df = df.sort_values(by="week_start")
-        
-        today = pd.Timestamp(datetime.date.today())
-        
-        # Get the first week that starts *strictly* after today's week
-        future = df[df["week_start"] >= today + pd.Timedelta(days=7)]
-        if not future.empty:
-            return int(future.iloc[0]["predicted_arrivals"])
+        from utils.db import fetch_predictions
+        df = fetch_predictions()
+        if not df.empty:
+            df["week_start"] = pd.to_datetime(df["week_start"])
+            df = df[df["model_name"] == "random_forest"].sort_values("week_start")
+            future = df[df["week_start"] >= next_week]
+            if not future.empty:
+                return int(future.iloc[0]["predicted_arrivals"])
     except Exception:
         pass
+
+    # 2. Fallback: local CSV cache
+    try:
+        cache_path = Path(__file__).parent.parent / "models" / "predictions_cache.csv"
+        if cache_path.exists():
+            df = pd.read_csv(cache_path)
+            df["week_start"] = pd.to_datetime(df["week_start"])
+            df = df[df["model_name"] == "random_forest"].sort_values(by="week_start")
+            future = df[df["week_start"] >= next_week]
+            if not future.empty:
+                return int(future.iloc[0]["predicted_arrivals"])
+    except Exception:
+        pass
+
     return None
 
 def render_page_header(title, accent_word=None, subtitle=""):
@@ -521,7 +570,9 @@ def render_insight_card(title, text):
 
 
 def render_page_banner(title: str, subtitle: str, icon: str = "🏔️",
-                       show_predictions: bool = False):
+                       show_predictions: bool = False,
+                       title_color: str = "#dee5ff",
+                       accent_color: str = "#39b8fd"):
     """
     Renders the premium page-header card shared across all pages.
     Matches the Bloomberg-style header of National Performance Canvas.
@@ -532,6 +583,8 @@ def render_page_banner(title: str, subtitle: str, icon: str = "🏔️",
     subtitle    : plain-text subtitle    (e.g. "Weekly predictions for Kandy district")
     icon        : emoji/char shown left of the accent bar (default: 🏔️)
     show_predictions : if True, show This Week / Next Week LSTM badges
+    title_color : custom color for the title text (default: #dee5ff)
+    accent_color : custom color for the accent bar glow (default: #39b8fd)
     """
     import datetime
     now      = datetime.datetime.now()
@@ -612,11 +665,11 @@ def render_page_banner(title: str, subtitle: str, icon: str = "🏔️",
         '<div style="display:flex;align-items:flex-start;gap:14px;flex:1;min-width:0;">',
         f'<div style="font-size:1.9rem;line-height:1;margin-top:6px;flex-shrink:0;">{icon}</div>',
         '<div style="width:3px;min-height:58px;border-radius:3px;flex-shrink:0;',
-        'background:linear-gradient(180deg,#39b8fd 0%,#69f6b8 100%);',
-        'box-shadow:0 0 10px rgba(57,184,253,0.45);margin-top:4px;"></div>',
+        f'background:linear-gradient(180deg,{accent_color} 0%,#69f6b8 100%);',
+        f'box-shadow:0 0 10px {accent_color}70;margin-top:4px;"></div>',
         '<div>',
         f'<div style="font-family:Manrope,sans-serif;font-size:1.85rem;font-weight:800;',
-        f'color:#dee5ff;line-height:1.1;letter-spacing:-0.022em;">',
+        f'color:{title_color};line-height:1.1;letter-spacing:-0.022em;">',
         f'{title}</div>',
         f'<div style="font-family:Inter,sans-serif;font-size:0.85rem;color:#6d758c;',
         f'margin-top:5px;font-weight:500;">&#127472;&#127473;&nbsp; {subtitle}</div>',

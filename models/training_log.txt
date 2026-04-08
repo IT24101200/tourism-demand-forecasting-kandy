@@ -1,0 +1,166 @@
+============================================================
+  Tourist Demand Forecasting — Model Training Pipeline
+  Started: 2026-04-05 12:09:03
+============================================================
+📡  Fetching kandy_weekly_data from Supabase …
+   ✅ Fetched 574 rows from Supabase.
+
+⚙️   Preprocessing data …
+   Features: 27 | Rows: 574
+   💾 Scaler saved → E:\SLIIT\2Y 2S\IT2021 - Artificial Intelligence and Machine Learning Project\tourist-forecast-kandy\models\feature_scaler.pkl
+
+🚀  Training XGBoost with Aggressive Hyperparameter Tuning …
+   🔍 Searching for optimal hyperparameters...
+Fitting 3 folds for each of 54 candidates, totalling 162 fits
+   🏆 Best Parameters Found: {'learning_rate': 0.01, 'max_depth': 6, 'n_estimators': 500, 'subsample': 0.8}
+   XGBoost Test | MAE: 133  RMSE: 239  R²: 0.7972
+   💾 Saved → E:\SLIIT\2Y 2S\IT2021 - Artificial Intelligence and Machine Learning Project\tourist-forecast-kandy\models\rf_model.pkl
+
+🧠  Training LSTM …
+Epoch 1/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m42s[0m 2s/step - loss: 0.0413 - mae: 0.1828
+[1m10/24[0m [32m━━━━━━━━[0m[37m━━━━━━━━━━━━[0m [1m0s[0m 6ms/step - loss: 0.0458 - mae: 0.1764
+[1m22/24[0m [32m━━━━━━━━━━━━━━━━━━[0m[37m━━[0m [1m0s[0m 5ms/step - loss: 0.0400 - mae: 0.1587
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m2s[0m 15ms/step - loss: 0.0288 - mae: 0.1277 - val_loss: 0.0052 - val_mae: 0.0569 - learning_rate: 5.0000e-04
+Epoch 2/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 30ms/step - loss: 0.0070 - mae: 0.0613
+[1m14/24[0m [32m━━━━━━━━━━━[0m[37m━━━━━━━━━[0m [1m0s[0m 4ms/step - loss: 0.0145 - mae: 0.0906 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 7ms/step - loss: 0.0150 - mae: 0.0896 - val_loss: 0.0074 - val_mae: 0.0639 - learning_rate: 5.0000e-04
+Epoch 3/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 22ms/step - loss: 0.0178 - mae: 0.0948
+[1m20/24[0m [32m━━━━━━━━━━━━━━━━[0m[37m━━━━[0m [1m0s[0m 3ms/step - loss: 0.0110 - mae: 0.0760 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 5ms/step - loss: 0.0112 - mae: 0.0774 - val_loss: 0.0063 - val_mae: 0.0595 - learning_rate: 5.0000e-04
+Epoch 4/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 22ms/step - loss: 0.0140 - mae: 0.0691
+[1m21/24[0m [32m━━━━━━━━━━━━━━━━━[0m[37m━━━[0m [1m0s[0m 3ms/step - loss: 0.0118 - mae: 0.0775 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 5ms/step - loss: 0.0111 - mae: 0.0746 - val_loss: 0.0051 - val_mae: 0.0554 - learning_rate: 5.0000e-04
+Epoch 5/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 32ms/step - loss: 0.0148 - mae: 0.0858
+[1m14/24[0m [32m━━━━━━━━━━━[0m[37m━━━━━━━━━[0m [1m0s[0m 4ms/step - loss: 0.0109 - mae: 0.0740 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 6ms/step - loss: 0.0101 - mae: 0.0712 - val_loss: 0.0085 - val_mae: 0.0700 - learning_rate: 5.0000e-04
+Epoch 6/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 33ms/step - loss: 0.0034 - mae: 0.0460
+[1m22/24[0m [32m━━━━━━━━━━━━━━━━━━[0m[37m━━[0m [1m0s[0m 2ms/step - loss: 0.0088 - mae: 0.0683 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 6ms/step - loss: 0.0090 - mae: 0.0688 - val_loss: 0.0069 - val_mae: 0.0632 - learning_rate: 5.0000e-04
+Epoch 7/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 36ms/step - loss: 0.0180 - mae: 0.0945
+[1m14/24[0m [32m━━━━━━━━━━━[0m[37m━━━━━━━━━[0m [1m0s[0m 4ms/step - loss: 0.0088 - mae: 0.0649 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 6ms/step - loss: 0.0073 - mae: 0.0614 - val_loss: 0.0099 - val_mae: 0.0760 - learning_rate: 5.0000e-04
+Epoch 8/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 22ms/step - loss: 0.0158 - mae: 0.0960
+[1m22/24[0m [32m━━━━━━━━━━━━━━━━━━[0m[37m━━[0m [1m0s[0m 2ms/step - loss: 0.0096 - mae: 0.0715 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 5ms/step - loss: 0.0080 - mae: 0.0653 - val_loss: 0.0089 - val_mae: 0.0724 - learning_rate: 5.0000e-04
+Epoch 9/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 23ms/step - loss: 0.0098 - mae: 0.0659
+[1m22/24[0m [32m━━━━━━━━━━━━━━━━━━[0m[37m━━[0m [1m0s[0m 2ms/step - loss: 0.0068 - mae: 0.0590 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 5ms/step - loss: 0.0077 - mae: 0.0630 - val_loss: 0.0056 - val_mae: 0.0568 - learning_rate: 5.0000e-04
+Epoch 10/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 24ms/step - loss: 0.0227 - mae: 0.0958
+[1m19/24[0m [32m━━━━━━━━━━━━━━━[0m[37m━━━━━[0m [1m0s[0m 3ms/step - loss: 0.0098 - mae: 0.0670 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 6ms/step - loss: 0.0071 - mae: 0.0595 - val_loss: 0.0074 - val_mae: 0.0644 - learning_rate: 2.5000e-04
+Epoch 11/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 40ms/step - loss: 0.0118 - mae: 0.0812
+[1m11/24[0m [32m━━━━━━━━━[0m[37m━━━━━━━━━━━[0m [1m0s[0m 5ms/step - loss: 0.0078 - mae: 0.0646 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 8ms/step - loss: 0.0072 - mae: 0.0596 - val_loss: 0.0094 - val_mae: 0.0730 - learning_rate: 2.5000e-04
+Epoch 12/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 29ms/step - loss: 0.0030 - mae: 0.0385
+[1m21/24[0m [32m━━━━━━━━━━━━━━━━━[0m[37m━━━[0m [1m0s[0m 3ms/step - loss: 0.0060 - mae: 0.0558 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 5ms/step - loss: 0.0071 - mae: 0.0598 - val_loss: 0.0067 - val_mae: 0.0625 - learning_rate: 2.5000e-04
+Epoch 13/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m1s[0m 44ms/step - loss: 0.0101 - mae: 0.0650
+[1m 8/24[0m [32m━━━━━━[0m[37m━━━━━━━━━━━━━━[0m [1m0s[0m 8ms/step - loss: 0.0081 - mae: 0.0633 
+[1m18/24[0m [32m━━━━━━━━━━━━━━━[0m[37m━━━━━[0m [1m0s[0m 6ms/step - loss: 0.0078 - mae: 0.0631
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 10ms/step - loss: 0.0067 - mae: 0.0583 - val_loss: 0.0076 - val_mae: 0.0668 - learning_rate: 2.5000e-04
+Epoch 14/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 38ms/step - loss: 0.0028 - mae: 0.0454
+[1m18/24[0m [32m━━━━━━━━━━━━━━━[0m[37m━━━━━[0m [1m0s[0m 3ms/step - loss: 0.0069 - mae: 0.0567 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 5ms/step - loss: 0.0068 - mae: 0.0572 - val_loss: 0.0065 - val_mae: 0.0623 - learning_rate: 2.5000e-04
+Epoch 15/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 20ms/step - loss: 0.0092 - mae: 0.0677
+[1m22/24[0m [32m━━━━━━━━━━━━━━━━━━[0m[37m━━[0m [1m0s[0m 2ms/step - loss: 0.0064 - mae: 0.0549 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 5ms/step - loss: 0.0057 - mae: 0.0542 - val_loss: 0.0098 - val_mae: 0.0756 - learning_rate: 2.5000e-04
+Epoch 16/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 39ms/step - loss: 0.0037 - mae: 0.0482
+[1m16/24[0m [32m━━━━━━━━━━━━━[0m[37m━━━━━━━[0m [1m0s[0m 4ms/step - loss: 0.0049 - mae: 0.0504 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 7ms/step - loss: 0.0058 - mae: 0.0547 - val_loss: 0.0080 - val_mae: 0.0694 - learning_rate: 2.5000e-04
+Epoch 17/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m1s[0m 48ms/step - loss: 0.0094 - mae: 0.0705
+[1m14/24[0m [32m━━━━━━━━━━━[0m[37m━━━━━━━━━[0m [1m0s[0m 4ms/step - loss: 0.0072 - mae: 0.0604 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 6ms/step - loss: 0.0062 - mae: 0.0566 - val_loss: 0.0092 - val_mae: 0.0743 - learning_rate: 2.5000e-04
+Epoch 18/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 21ms/step - loss: 0.0031 - mae: 0.0440
+[1m22/24[0m [32m━━━━━━━━━━━━━━━━━━[0m[37m━━[0m [1m0s[0m 2ms/step - loss: 0.0055 - mae: 0.0544 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 5ms/step - loss: 0.0062 - mae: 0.0551 - val_loss: 0.0068 - val_mae: 0.0644 - learning_rate: 1.2500e-04
+Epoch 19/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 34ms/step - loss: 0.0039 - mae: 0.0448
+[1m18/24[0m [32m━━━━━━━━━━━━━━━[0m[37m━━━━━[0m [1m0s[0m 3ms/step - loss: 0.0046 - mae: 0.0491 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 5ms/step - loss: 0.0053 - mae: 0.0528 - val_loss: 0.0067 - val_mae: 0.0633 - learning_rate: 1.2500e-04
+Epoch 20/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 24ms/step - loss: 0.0094 - mae: 0.0756
+[1m20/24[0m [32m━━━━━━━━━━━━━━━━[0m[37m━━━━[0m [1m0s[0m 3ms/step - loss: 0.0055 - mae: 0.0514 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 5ms/step - loss: 0.0050 - mae: 0.0498 - val_loss: 0.0081 - val_mae: 0.0689 - learning_rate: 1.2500e-04
+Epoch 21/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 22ms/step - loss: 0.0039 - mae: 0.0409
+[1m22/24[0m [32m━━━━━━━━━━━━━━━━━━[0m[37m━━[0m [1m0s[0m 2ms/step - loss: 0.0045 - mae: 0.0477 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 6ms/step - loss: 0.0052 - mae: 0.0506 - val_loss: 0.0076 - val_mae: 0.0668 - learning_rate: 1.2500e-04
+Epoch 22/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m1s[0m 45ms/step - loss: 0.0121 - mae: 0.0689
+[1m15/24[0m [32m━━━━━━━━━━━━[0m[37m━━━━━━━━[0m [1m0s[0m 4ms/step - loss: 0.0065 - mae: 0.0534 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 6ms/step - loss: 0.0056 - mae: 0.0524 - val_loss: 0.0065 - val_mae: 0.0621 - learning_rate: 1.2500e-04
+Epoch 23/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 31ms/step - loss: 0.0043 - mae: 0.0451
+[1m13/24[0m [32m━━━━━━━━━━[0m[37m━━━━━━━━━━[0m [1m0s[0m 4ms/step - loss: 0.0044 - mae: 0.0455 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 6ms/step - loss: 0.0052 - mae: 0.0497 - val_loss: 0.0081 - val_mae: 0.0686 - learning_rate: 1.2500e-04
+Epoch 24/150
+
+[1m 1/24[0m [37m━━━━━━━━━━━━━━━━━━━━[0m [1m0s[0m 27ms/step - loss: 0.0025 - mae: 0.0338
+[1m21/24[0m [32m━━━━━━━━━━━━━━━━━[0m[37m━━━[0m [1m0s[0m 3ms/step - loss: 0.0044 - mae: 0.0463 
+[1m24/24[0m [32m━━━━━━━━━━━━━━━━━━━━[0m[37m[0m [1m0s[0m 6ms/step - loss: 0.0053 - mae: 0.0503 - val_loss: 0.0077 - val_mae: 0.0672 - learning_rate: 1.2500e-04
+   LSTM Test | MAE: 183  RMSE: 248  R²: 0.4533
+   💾 Saved → E:\SLIIT\2Y 2S\IT2021 - Artificial Intelligence and Machine Learning Project\tourist-forecast-kandy\models\lstm_model.keras
+
+   Generating 52-week future forecast (1 year) ...
+
+   Saved 104 records to models/predictions_cache.csv
+   Date range: 2026-01-01 --> 2026-12-24
+
+   Pushing 104 predictions to Supabase ...
+   OK 100/104
+   OK 104/104
+
+   SUCCESS: 104 rows pushed to Supabase & saved locally.
+
+============================================================
+  Training Complete!
+  Random Forest  --> MAE: 133  R2: 0.7972
+  LSTM           --> MAE: 183  R2: 0.4533
+  Forecast weeks : 52 weeks (1 year)
+  Forecast range : 2026-01-01 to 2026-12-24
+  Supabase push  : SUCCESS
+  Local cache    : SAVED
+  Models saved in: E:\SLIIT\2Y 2S\IT2021 - Artificial Intelligence and Machine Learning Project\tourist-forecast-kandy\models
+  Finished: 2026-04-05 12:09:33
+============================================================

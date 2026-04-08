@@ -10,6 +10,7 @@ import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from fpdf import FPDF
 from utils.sidebar import render_sidebar
 from utils.auth import require_auth
 from utils.theme import apply_plotly_theme, apply_custom_theme, render_page_banner, get_theme
@@ -290,7 +291,18 @@ with tab1:
     else:
         insights.append(f"🏨 <strong>Occupancy comfortable at {avg_occ:.0f}% avg</strong>. No overflow risk in the current {len(recent)}-week window.")
 
-    insights.append(f"🧑‍💼 <strong>Peak staffing: {recent['staff'].max()} personnel</strong>. Peak transport units needed: {recent['transport'].max()}.")
+    # Advanced NLG Section
+    st.markdown('<div class="section-header">🤖 Advanced NLG Stakeholder Summary</div>', unsafe_allow_html=True)
+    nlg_summary = f"Over the {len(recent)}-week reporting period beginning {first_w}, the Kandy district is projected to receive {total_arrivals:,} total tourist arrivals. "
+    if high_occ_wks.empty:
+        nlg_summary += f"Hospitality operations should run smoothly, maintaining an average occupancy of {avg_occ:.1f}% with no significant bottleneck events detected. "
+    else:
+        nlg_summary += f"We have identified critical operational pressure in {len(high_occ_wks)} week(s), peaking at {recent['occ_pct'].max():.0f}% occupancy during the week of {peak_week_str}. During this period, the system forecasts a necessary mobilization of {recent['staff'].max()} personnel and {recent['transport'].max()} transport units to manage the surge. "
+        
+    if not heavy_rain.empty:
+        nlg_summary += f"Furthermore, stakeholder attention is strongly advised regarding expected heavy monsoon rainfall (>120 mm) across {len(heavy_rain)} week(s), which may complicate outdoor cultural events and transit routes. "
+        
+    st.markdown(f'<div class="insight-bullet" style="font-size:0.95rem; line-height:1.6; border-left:4px solid {theme["accent2"]};"><strong>AI Synthesis:</strong> {nlg_summary}</div>', unsafe_allow_html=True)
 
     for ins in insights:
         st.markdown(f'<div class="insight-bullet">{ins}</div>', unsafe_allow_html=True)
@@ -396,7 +408,57 @@ with tab3:
             csv_df["Expected Arrivals"] = csv_df["Expected Arrivals"].astype(int)
         csv_df.to_csv(out, index=False)
         return out.getvalue()
+        
+    # Build Excel
+    def build_excel(df):
+        output = io.BytesIO()
+        csv_df = df.rename(columns={c: preview_cols[c] for c in preview_cols if c in df.columns})
+        if "Occupancy %" in csv_df.columns:
+            csv_df["Occupancy %"] = csv_df["Occupancy %"].round(1).astype(str) + "%"
+        if "Expected Arrivals" in csv_df.columns:
+            csv_df["Expected Arrivals"] = csv_df["Expected Arrivals"].astype(int)
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            csv_df.to_excel(writer, index=False, sheet_name='Forecast Data')
+        processed_data = output.getvalue()
+        return processed_data
+        
+    # Build PDF
+    def build_pdf(df, nlg_text):
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", 'B', 16)
+        pdf.cell(200, 10, txt="Automated Reporting System - Stakeholder Report", ln=True, align='C')
+        pdf.set_font("Arial", size=10)
+        pdf.cell(200, 10, txt=f"Generated on {now_str}. Reporting Period: {first_w} to {last_w}.", ln=True, align='C')
+        pdf.ln(10)
+        
+        pdf.set_font("Arial", 'B', 12)
+        pdf.cell(200, 10, txt="Executive Summary (AI NLG)", ln=True)
+        pdf.set_font("Arial", size=10)
+        pdf.multi_cell(0, 7, txt=nlg_text)
+        pdf.ln(10)
+        
+        pdf.set_font("Arial", 'B', 12)
+        pdf.cell(200, 10, txt="Forecast Highlights", ln=True)
+        pdf.set_font("Arial", size=10)
+        pdf.cell(200, 7, txt=f"- Total Expected Arrivals: {total_arrivals:,}", ln=True)
+        pdf.cell(200, 7, txt=f"- Peak Week Arrivals: {peak_arrivals:,} (Week of {peak_week_str})", ln=True)
+        pdf.cell(200, 7, txt=f"- Average Occupancy: {avg_occ:.1f}%", ln=True)
+        pdf.ln(10)
+        
+        return pdf.output(dest='S').encode('latin-1')
 
-    csv_bytes = build_csv(recent[[c for c in preview_cols if c in recent.columns]].copy()).encode("utf-8")
-    fname = f"kandy_tourism_report_{datetime.date.today().strftime('%Y%m%d')}.csv"
-    st.download_button("⬇️  Download Filtered CSV Report", csv_bytes, fname, "text/csv", type="primary")
+    dcols = st.columns(3)
+    df_export = recent[[c for c in preview_cols if c in recent.columns]].copy()
+    
+    with dcols[0]:
+        csv_bytes = build_csv(df_export).encode("utf-8")
+        st.download_button("⬇️  Download CSV", csv_bytes, f"report_{datetime.date.today().strftime('%Y%m%d')}.csv", "text/csv", use_container_width=True)
+    with dcols[1]:
+        excel_bytes = build_excel(df_export)
+        st.download_button("⬇️  Download Excel", excel_bytes, f"report_{datetime.date.today().strftime('%Y%m%d')}.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
+    with dcols[2]:
+        pdf_bytes = build_pdf(df_export, nlg_summary)
+        st.download_button("⬇️  Download PDF", pdf_bytes, f"report_{datetime.date.today().strftime('%Y%m%d')}.pdf", "application/pdf", use_container_width=True, type="primary")
+
+

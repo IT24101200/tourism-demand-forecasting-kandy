@@ -60,6 +60,10 @@ def load_user_profile(user):
             profile.update({k: v for k, v in db_row.items() if v})
     except Exception:
         pass  # Table may not exist — that's fine, we use metadata
+        
+    # MASTER OVERRIDE for Admin Access
+    if profile.get("email") == "it24101200@my.sliit.lk":
+        profile["role"] = "System Administrator"
 
     return profile
 
@@ -523,6 +527,16 @@ def require_auth():
     # If user exists but profile wasn't loaded (e.g. page refresh), load it now
     if st.session_state.get("user_profile") is None:
         st.session_state["user_profile"] = load_user_profile(user)
+
+
+def require_admin():
+    """Call at the top of Admin pages. Halts if not a System Administrator."""
+    require_auth()
+    profile = st.session_state.get("user_profile")
+    if not profile or profile.get("role") != "System Administrator":
+        st.error("🚫 Access Denied. You must be a System Administrator to view this page.")
+        # Force a stop
+        st.stop()
 
 
 def check_password():

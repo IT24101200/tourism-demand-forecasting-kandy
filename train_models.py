@@ -128,7 +128,15 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    df[FEATURE_COLS] = df[FEATURE_COLS].fillna(0)
+    # Use robust median imputation for continuous weather features
+    weather_cols = ["avg_weekly_rainfall_mm", "avg_temp_celsius", "avg_humidity_pct"]
+    for col in FEATURE_COLS:
+        if col in df.columns:
+            if col in weather_cols:
+                df[col] = df[col].fillna(df[col].median())
+            else:
+                df[col] = df[col].fillna(0)
+
     df[TARGET_COL]   = df[TARGET_COL].fillna(df[TARGET_COL].median())
 
     # Lag features (last 1, 2, 4 weeks)
@@ -406,23 +414,58 @@ def generate_future_features(df: pd.DataFrame, weeks: int = 26) -> pd.DataFrame:
 # ══════════════════════════════════════════════════════════════
 #  STEP 5 — Push Predictions to Supabase
 # ══════════════════════════════════════════════════════════════
-def push_predictions(preds: list[dict]):
-    if not SUPABASE_SERVICE_KEY or SUPABASE_SERVICE_KEY == "PASTE_YOUR_SERVICE_ROLE_KEY_HERE":
-        print("\n⚠️  SERVICE KEY not set — skipping Supabase prediction push.")
-        print("   Predictions saved locally instead (see models/predictions_cache.csv).")
-        pd.DataFrame(preds).to_csv(MODELS_DIR / "predictions_cache.csv", index=False)
-        return
+def push_predictions(preds: list[dict]) -> dict:
+    """
+    Always saves predictions locally as the offline fallback.
+    Then attempts to push to Supabase. Returns a result dict with
+    success status, row count, and date range for Admin dashboard reporting.
+    """
+    result = {
+        "local_saved": False,
+        "supabase_pushed": False,
+        "rows": len(preds),
+        "date_start": None,
+        "date_end": None,
+        "error": None,
+    }
 
-    sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-    print(f"\n📤  Pushing {len(preds)} predictions to Supabase …")
-    BATCH = 100
-    for i in range(0, len(preds), BATCH):
-        batch = preds[i : i + BATCH]
-        sb.table("predictions").upsert(batch, on_conflict="week_start,model_name").execute()
-        print(f"   ✓ {min(i+BATCH, len(preds))}/{len(preds)}", end="\r")
-    # Also save a local cache for offline use
-    pd.DataFrame(preds).to_csv(MODELS_DIR / "predictions_cache.csv", index=False)
-    print("\n   ✅ Predictions pushed to Supabase & cached locally.")
+    # ── Always save locally first (offline fallback) ──────────────────
+    try:
+        df_preds = pd.DataFrame(preds)
+        df_preds.to_csv(MODELS_DIR / "predictions_cache.csv", index=False)
+        result["local_saved"] = True
+        dates = sorted([r["week_start"] for r in preds])
+        result["date_start"] = dates[0]
+        result["date_end"]   = dates[-1]
+        print(f"\n   Saved {len(preds)} records to models/predictions_cache.csv")
+        print(f"   Date range: {result['date_start']} --> {result['date_end']}")
+    except Exception as e:
+        result["error"] = f"Local save failed: {e}"
+        print(f"   ERROR saving locally: {e}")
+
+    # ── Push to Supabase ──────────────────────────────────────────────
+    if not SUPABASE_SERVICE_KEY or SUPABASE_SERVICE_KEY == "PASTE_YOUR_SERVICE_ROLE_KEY_HERE":
+        msg = "SUPABASE_SERVICE_KEY not configured — skipping cloud push. Data saved locally only."
+        print(f"\n   WARNING: {msg}")
+        result["error"] = msg
+        return result
+
+    try:
+        sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+        print(f"\n   Pushing {len(preds)} predictions to Supabase ...")
+        BATCH = 100
+        for i in range(0, len(preds), BATCH):
+            batch = preds[i : i + BATCH]
+            sb.table("predictions").upsert(batch, on_conflict="week_start,model_name").execute()
+            print(f"   OK {min(i+BATCH, len(preds))}/{len(preds)}", end="\r")
+        result["supabase_pushed"] = True
+        print(f"\n   SUCCESS: {len(preds)} rows pushed to Supabase & saved locally.")
+    except Exception as e:
+        result["error"] = f"Supabase push failed: {e}"
+        print(f"\n   ERROR pushing to Supabase: {e}")
+        print("   Data is still available from local cache.")
+
+    return result
 
 
 # ══════════════════════════════════════════════════════════════
@@ -471,9 +514,10 @@ def main():
     # ── 4B. LSTM ───────────────────────────────────────────────
     lstm_model, lstm_metrics = train_lstm(X_scaled_all, y_scaled, split_idx, len(feat_cols), y_scaler)
 
-    # ── 5. Generate future forecasts ───────────────────────────
-    print("\n🔮  Generating 26-week future forecast …")
-    future_df = generate_future_features(df, weeks=26)
+    # ── 5. Generate future forecasts ────────────────────────────
+    FORECAST_WEEKS = 52  # 1 full year of weekly predictions
+    print(f"\n   Generating {FORECAST_WEEKS}-week future forecast (1 year) ...")
+    future_df = generate_future_features(df, weeks=FORECAST_WEEKS)
     feat_future = [c for c in feat_cols if c in future_df.columns]
 
     # RF predictions
@@ -485,7 +529,7 @@ def main():
     lstm_future_preds = []
     window = last_window.copy()
 
-    for i in range(26):
+    for i in range(FORECAST_WEEKS):
         # 1. Build next scaled row using future_df features (the 'current' exogenous conditions)
         future_row_raw = future_df.iloc[i][feat_future].fillna(0).values.reshape(1, -1)
 
@@ -534,14 +578,20 @@ def main():
             "features_used":     json.dumps({"lookback": LOOKBACK}),
         })
 
-    # ── 6. Push to Supabase ────────────────────────────────────
-    push_predictions(prediction_records)
+    # ── 6. Push to Supabase ────────────────────────────
+    push_result = push_predictions(prediction_records)
 
-    # ── Summary ────────────────────────────────────────────────
+    # ── Summary ───────────────────────────────────
     print("\n" + "=" * 60)
     print("  Training Complete!")
-    print(f"  Random Forest  → MAE: {rf_metrics['mae']:,.0f}  R²: {rf_metrics['r2']:.4f}")
-    print(f"  LSTM           → MAE: {lstm_metrics['mae']:,.0f}  R²: {lstm_metrics['r2']:.4f}")
+    print(f"  Random Forest  --> MAE: {rf_metrics['mae']:,.0f}  R2: {rf_metrics['r2']:.4f}")
+    print(f"  LSTM           --> MAE: {lstm_metrics['mae']:,.0f}  R2: {lstm_metrics['r2']:.4f}")
+    print(f"  Forecast weeks : {FORECAST_WEEKS} weeks (1 year)")
+    print(f"  Forecast range : {push_result.get('date_start')} to {push_result.get('date_end')}")
+    print(f"  Supabase push  : {'SUCCESS' if push_result.get('supabase_pushed') else 'LOCAL ONLY'}")
+    print(f"  Local cache    : {'SAVED' if push_result.get('local_saved') else 'FAILED'}")
+    if push_result.get('error'):
+        print(f"  Warning        : {push_result['error']}")
     print(f"  Models saved in: {MODELS_DIR}")
     print(f"  Finished: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)

@@ -284,7 +284,7 @@ if rf_model is None:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 with st.expander("📖  **How to Use This Simulator**  —  Click to expand", expanded=False):
     st.markdown("""
-    <div class="guide-box">
+<div class="guide-box">
         <div class="guide-title">🎯 Quick Start Guide</div>
         <div class="guide-step">
             <div class="guide-step-num">1</div>
@@ -292,23 +292,19 @@ with st.expander("📖  **How to Use This Simulator**  —  Click to expand", ex
         </div>
         <div class="guide-step">
             <div class="guide-step-num">2</div>
-            <div class="guide-step-text"><strong>Set the Timeline</strong> — Pick the week, month, and year you want to simulate. The quarter is calculated automatically.</div>
+            <div class="guide-step-text"><strong>Navigate the Tabs</strong> — The simulator utilizes three distinct tabs: 🕒 Timeline, 📍 Geopolitics, and 🌦️ Weather. Set your experimental parameters inside each tab.</div>
         </div>
         <div class="guide-step">
             <div class="guide-step-num">3</div>
-            <div class="guide-step-text"><strong>Configure Market & Events</strong> — Select festivals, crisis conditions, and current visitor momentum to shape the demand context.</div>
+            <div class="guide-step-text"><strong>Real-Time Predictions</strong> — There is no run button! The AI prediction engine instantly processes any changes you make and dynamically updates the visual insights below.</div>
         </div>
         <div class="guide-step">
             <div class="guide-step-num">4</div>
-            <div class="guide-step-text"><strong>Adjust Weather</strong> — Enter expected rainfall, temperature, and humidity. Values above 150mm rainfall trigger monsoon mode automatically.</div>
-        </div>
-        <div class="guide-step">
-            <div class="guide-step-num">5</div>
-            <div class="guide-step-text"><strong>Run Simulation</strong> — Click the blue button at the bottom. The AI model will predict weekly arrivals based on your inputs, along with actionable recommendations.</div>
+            <div class="guide-step-text"><strong>Analyze Market Impact</strong> — Use the Waterfall bridge chart at the bottom to visualize exactly how your configured scenario shifts the baseline tourism demand.</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
-    st.info("💡 **Tip:** Compare different scenarios by adjusting one variable at a time (e.g. run the same week with/without a festival) to see the impact of individual factors.")
+    st.info("💡 **Tip:** Compare different scenarios by tweaking individual tabs (e.g. toggle a festival or severe monsoon) to immediately see the impact of that specific factor.")
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -356,10 +352,10 @@ st.markdown(f"""
 </p>
 """, unsafe_allow_html=True)
 
-col_left, col_right = st.columns([1, 1.2], gap="large")
+tab_time, tab_geom, tab_weather = st.tabs(["🕒 Timeline & Market", "📍 Geopolitics & Events", "🌦️ Weather & Environment"])
 
-# ── LEFT COLUMN: Timeline + Market Momentum ──
-with col_left:
+# ── TAB 1 ──
+with tab_time:
     # -- Temporal Context --
     with st.container(border=True):
         st.markdown("""
@@ -367,17 +363,16 @@ with col_left:
         <div class="panel-desc">Set the target week, month, and year for your simulation scenario.</div>
         """, unsafe_allow_html=True)
 
-        t_col1, t_col2 = st.columns(2)
-        with t_col1:
-            week_of_year = st.slider("Week of Year", 1, 52, def_week,
-                help="The ISO week number (1–52). Esala Perahera typically falls around weeks 30–35.")
-        with t_col2:
-            year = st.slider("Year", 2015, 2030, 2026,
-                help="Select the target year for simulation.")
+        import datetime
+        if def_esala: default_date = datetime.date(2026, 8, 15)
+        elif preset == "Severe Monsoon Season": default_date = datetime.date(2026, 5, 25)
+        else: default_date = datetime.date(2026, 8, 15)
 
-        month = st.slider("Month", 1, 12, int(math.ceil(week_of_year/4.33)) if week_of_year else 8,
-            help="Auto-calculated from week, but you can override it.")
-        quarter = math.ceil(month / 3)
+        target_date = st.date_input("Target Scenario Date", value=default_date, help="Select the exact target date.")
+        year = target_date.year
+        month = target_date.month
+        week_of_year = target_date.isocalendar()[1]
+        quarter = (month - 1) // 3 + 1
 
     # -- Market Momentum --
     with st.container(border=True):
@@ -410,8 +405,8 @@ with col_left:
         lag_val = st.number_input("Exact Arrivals (Last 7 Days)", min_value=0, max_value=200000, step=1000, value=target_val,
             help="The exact number of arrivals in the most recent 7-day window. This strongly influences the prediction.")
 
-# ── RIGHT COLUMN: Events + Weather ──
-with col_right:
+# ── TAB 2 ──
+with tab_geom:
     # -- Geopolitical & Cultural --
     with st.container(border=True):
         st.markdown("""
@@ -451,6 +446,7 @@ with col_right:
             is_school_hol = st.toggle("School Holiday", help="School holidays increase domestic travel.")
         is_any_fest = int(any([is_esala, is_esala_prep, is_poson, is_vesak, is_stny, is_xmas, is_poya]))
 
+with tab_weather:
     # -- Weather Conditions --
     with st.container(border=True):
         st.markdown("""
@@ -460,26 +456,13 @@ with col_right:
 
         w_col1, w_col2, w_col3 = st.columns(3)
         with w_col1:
-            rainfall_str = st.text_input(
-                "🌧️ Rainfall (mm)", value=str(float(def_rain)),
-                help="Weekly average rainfall. Above 150mm is considered heavy monsoon rain."
-            )
+            rainfall_str = st.number_input("🌧️ Rainfall (mm)", min_value=0.0, max_value=1500.0, value=float(def_rain), step=10.0, help="Above 150mm is heavy monsoon.")
         with w_col2:
-            temp_str = st.text_input(
-                "🌡️ Temp (°C)", value=str(float(def_temp)),
-                help="Average temperature. Valid range: 15°C – 40°C."
-            )
+            temp_str = st.number_input("🌡️ Temp (°C)", min_value=15.0, max_value=40.0, value=float(def_temp), step=0.5)
         with w_col3:
-            humidity_str = st.text_input(
-                "💧 Humidity (%)", value=str(float(def_hum)),
-                help="Average relative humidity. Valid range: 0% – 100%."
-            )
-
-        try:
-            tmp_rain = float(rainfall_str)
-        except Exception:
-            tmp_rain = 0.0
-        is_monsoon = st.toggle("Severe Monsoon Active", value=bool(tmp_rain > 150),
+            humidity_str = st.number_input("💧 Humidity (%)", min_value=0.0, max_value=100.0, value=float(def_hum), step=1.0)
+        
+        is_monsoon = st.toggle("Severe Monsoon Active", value=bool(rainfall_str > 150),
             help="Automatically enabled when rainfall exceeds 150mm. Can be manually toggled.")
 
 
@@ -510,133 +493,11 @@ else:
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# STEP 3: VALIDATION + RUN BUTTON
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
-
-st.markdown(f"""
-<div style="display:flex; align-items:center; gap:12px; margin: 8px 0 10px 0;">
-    <span class="step-badge step-3">Step 3</span>
-    <span style="color:{theme['warning']}; font-family:'Manrope',sans-serif; font-size:1.35rem; font-weight:800;">Run the AI Simulation</span>
-</div>
-<p style="color:{theme['text_muted']}; font-family:'Inter',sans-serif; font-size:0.95rem; margin:0 0 12px 0;">
-    Verify your inputs below, then click the button to generate a prediction.
-</p>
-""", unsafe_allow_html=True)
-
-# --- Validation instructions for users ---
-st.markdown(f"""
-<div style="background: linear-gradient(135deg, rgba(245,158,11,0.06), rgba(245,158,11,0.02));
-            border: 1px solid rgba(245,158,11,0.18); border-radius: 14px;
-            padding: 20px 24px; margin-bottom: 16px;">
-    <div style="color:{theme['warning']}; font-family:'Manrope',sans-serif; font-size:1.1rem; font-weight:700;
-                margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-        📋 Input Validation Rules
-    </div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px 24px;">
-        <div style="display:flex; align-items:center; gap:8px;">
-            <span style="color:{theme['warning']}; font-size:0.85rem;">●</span>
-            <span style="color:{theme['text_muted']}; font-family:'Inter',sans-serif; font-size:0.9rem;">Temperature must be <strong style='color:#F8FAFC'>15°C – 40°C</strong></span>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-            <span style="color:{theme['warning']}; font-size:0.85rem;">●</span>
-            <span style="color:{theme['text_muted']}; font-family:'Inter',sans-serif; font-size:0.9rem;">Humidity must be <strong style='color:#F8FAFC'>0% – 100%</strong></span>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-            <span style="color:{theme['warning']}; font-size:0.85rem;">●</span>
-            <span style="color:{theme['text_muted']}; font-family:'Inter',sans-serif; font-size:0.9rem;">Rainfall cannot be <strong style='color:#F8FAFC'>negative</strong></span>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-            <span style="color:{theme['warning']}; font-size:0.85rem;">●</span>
-            <span style="color:{theme['text_muted']}; font-family:'Inter',sans-serif; font-size:0.9rem;">All weather fields are <strong style='color:#F8FAFC'>required</strong></span>
-        </div>
-    </div>
-    <div style="color:{theme['text_dim']}; font-family:'Inter',sans-serif; font-size:0.82rem; margin-top:10px; line-height:1.5;">
-        💡 If humidity is out of range, it will be auto-corrected to 75%. Only numerical values are accepted.
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# --- Input validation ---
-is_valid = True
-val_messages = []
-
-if not rainfall_str.strip() or not temp_str.strip() or not humidity_str.strip():
-    is_valid = False
-    val_messages.append("Missing input: All weather fields must be filled to unlock the simulator.")
-else:
-    try:
-        rainfall_mm = float(rainfall_str)
-        temp_c = float(temp_str)
-        humidity_pct = float(humidity_str)
-
-        if not (15.0 <= temp_c <= 40.0):
-            is_valid = False
-            val_messages.append(f"Invalid input: Temperature ({temp_c}°C) is out of bounds. Must be between 15°C and 40°C.")
-
-        if rainfall_mm < 0:
-            is_valid = False
-            val_messages.append("Invalid input: Rainfall cannot be negative.")
-
-        if humidity_pct < 0 or humidity_pct > 100:
-            val_messages.append(f"Unexpected value: Humidity ({humidity_pct}%) is out of range. Auto-corrected to 75.0%.")
-            humidity_pct = 75.0
-
-    except ValueError:
-        is_valid = False
-        val_messages.append("Invalid format: Only numerical values are allowed in weather fields.")
-
-for msg in val_messages:
-    if "Unexpected" in msg:
-        st.warning(msg)
-    else:
-        st.error(msg)
-
-if is_valid and not val_messages:
-    # Inject custom CSS for the red button (Using Streamlit 1.35+ st.html API)
-    st.html("""
-    <style>
-    div.stButton > button,
-    div[data-testid="stButton"] > button {
-        background-color: #ef4444 !important;
-        border-color: #dc2626 !important;
-        color: white !important;
-    }
-    div.stButton > button:hover,
-    div[data-testid="stButton"] > button:hover {
-        background-color: #dc2626 !important;
-        border-color: #b91c1c !important;
-    }
-    div.stButton > button p,
-    div[data-testid="stButton"] > button p {
-        color: white !important;
-    }
-    div.stButton > button:focus:not(:active),
-    div[data-testid="stButton"] > button:focus:not(:active) {
-        border-color: #ef4444 !important;
-        color: white !important;
-        background-color: #ef4444 !important;
-    }
-    </style>
-    """)
-
-    st.markdown("""
-    <div style="background:{theme['surface_low']}; border:1px solid {theme['border']}; border-radius:10px;
-                padding:10px 16px; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
-        <span style="font-size:1.1rem">✅</span>
-        <span style="color:{theme['accent2']}; font-family:'Inter',sans-serif; font-size:0.95rem; font-weight:600;">
-            All inputs are valid. Ready to run the simulation.
-        </span>
-    </div>
-    """, unsafe_allow_html=True)
-
-if not st.button("🚀  Run Simulation", type="primary", use_container_width=True, disabled=not is_valid):
-    st.stop()
-
-
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # PREDICTION ENGINE
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+rainfall_mm = float(rainfall_str)
+temp_c = float(temp_str)
+humidity_pct = float(humidity_str)
 feature_dict = {
     "week_of_year": week_of_year,
     "month": month,
@@ -912,39 +773,69 @@ with gauge_col:
     )
     st.plotly_chart(apply_plotly_theme(fig_bar), use_container_width=True)
 
-    # ── Understanding This Result ──
-    st.markdown("<div style='height:14px'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
+st.markdown(f"""
+<div style="color:{theme['accent2']}; font-family:'Manrope',sans-serif; font-size:1.3rem; font-weight:800; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+    🌊 Market Impact Bridge (Waterfall)
+</div>
+<p style="color:{theme['text_muted']}; font-family:'Inter',sans-serif; font-size:0.95rem; margin:0 0 16px 0;">
+    Visualizes the exact delta shift separating your recent baseline momentum from the AI's final scenario prediction.
+</p>
+""", unsafe_allow_html=True)
 
-    mean_val = baseline["mean"] if baseline else 15000
-    pct_of_peak = (predicted / peak_val * 100) if peak_val > 0 else 0
+delta_vs_lag = predicted - lag_val
+fig_waterfall = go.Figure(go.Waterfall(
+    name="Impact", orientation="v",
+    measure=["absolute", "relative", "total"],
+    x=["Current Market", "AI Scenario Impact", "Predicted Potential"],
+    y=[lag_val, delta_vs_lag, predicted],
+    connector={"line":{"color":"rgba(255,255,255,0.1)", "width":1}},
+    decreasing={"marker":{"color": theme['danger']}},
+    increasing={"marker":{"color": theme['accent2']}},
+    totals={"marker":{"color": theme['accent_dim']}}
+))
+fig_waterfall.update_layout(
+    showlegend=False,
+    plot_bgcolor="rgba(0,0,0,0)",
+    paper_bgcolor="rgba(0,0,0,0)",
+    margin=dict(t=20, b=20, l=20, r=20),
+    font=dict(color=theme['text_muted'])
+)
+st.plotly_chart(apply_plotly_theme(fig_waterfall), use_container_width=True)
 
-    st.markdown(f"""
-    <div style="background:linear-gradient(135deg, rgba(56,189,248,0.06), rgba(78,222,163,0.04));
-                border:1px solid rgba(56,189,248,0.15); border-radius:14px; padding:20px 22px;">
-        <div style="color:{theme['accent_dim']}; font-family:'Manrope',sans-serif; font-size:1.05rem; font-weight:700;
-                    margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-            📖 How to Read This Result
+# ── Understanding This Result ──
+st.markdown("<div style='height:14px'></div>", unsafe_allow_html=True)
+
+mean_val = baseline["mean"] if baseline else 15000
+pct_of_peak = (predicted / peak_val * 100) if peak_val > 0 else 0
+
+st.markdown(f"""
+<div style="background:linear-gradient(135deg, rgba(56,189,248,0.06), rgba(78,222,163,0.04));
+            border:1px solid rgba(56,189,248,0.15); border-radius:14px; padding:20px 22px;">
+    <div style="color:{theme['accent_dim']}; font-family:'Manrope',sans-serif; font-size:1.05rem; font-weight:700;
+                margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+        📖 How to Read This Result
+    </div>
+    <div style="color:{theme['text_muted']}; font-family:'Inter',sans-serif; font-size:0.88rem; line-height:1.7;">
+        <div style="margin-bottom:8px;">
+            <strong style="color:{theme['text_main']};">What does {predicted:,.0f} mean?</strong><br>
+            The AI model predicts approximately <strong style="color:{theme['accent_dim']};">{predicted:,.0f} tourists</strong> will visit Kandy
+            during this simulated week — that's about <strong style="color:{theme['accent2']};">{daily_avg:,.0f} visitors per day</strong>.
         </div>
-        <div style="color:{theme['text_muted']}; font-family:'Inter',sans-serif; font-size:0.88rem; line-height:1.7;">
-            <div style="margin-bottom:8px;">
-                <strong style="color:{theme['text_main']};">What does {predicted:,.0f} mean?</strong><br>
-                The AI model predicts approximately <strong style="color:{theme['accent_dim']};">{predicted:,.0f} tourists</strong> will visit Kandy
-                during this simulated week — that's about <strong style="color:{theme['accent2']};">{daily_avg:,.0f} visitors per day</strong>.
-            </div>
-            <div style="margin-bottom:8px;">
-                <strong style="color:{theme['text_main']};">How does this compare?</strong><br>
-                This is <strong style="color:{risk_color};">{delta_sign}{delta_pct:.1f}%</strong> compared to your baseline of {lag_val:,} arrivals,
-                and represents <strong style="color:{theme['warning']};">{pct_of_peak:.0f}%</strong> of the historical peak ({peak_val:,.0f}).
-            </div>
-            <div>
-                <strong style="color:{theme['text_main']};">Model confidence:</strong>
-                The Random Forest model was trained on <strong style="color:#a78bfa;">574 weeks</strong> of real data.
-                Predictions are most reliable when inputs are within historical norms.
-                {f'<span style="color:{theme["danger"]};">⚠️ Extreme values detected — prediction may be less reliable.</span>' if (rainfall_mm > 200 or temp_c > 35 or temp_c < 18) else f'<span style="color:{theme["accent2"]};">✅ Input values are within trained data range.</span>'}
-            </div>
+        <div style="margin-bottom:8px;">
+            <strong style="color:{theme['text_main']};">How does this compare?</strong><br>
+            This is <strong style="color:{risk_color};">{delta_sign}{delta_pct:.1f}%</strong> compared to your baseline of {lag_val:,} arrivals,
+            and represents <strong style="color:{theme['warning']};">{pct_of_peak:.0f}%</strong> of the historical peak ({peak_val:,.0f}).
+        </div>
+        <div>
+            <strong style="color:{theme['text_main']};">Model confidence:</strong>
+            The Random Forest model was trained on <strong style="color:#a78bfa;">574 weeks</strong> of real data.
+            Predictions are most reliable when inputs are within historical norms.
+            {f'<span style="color:{theme["danger"]};">⚠️ Extreme values detected — prediction may be less reliable.</span>' if (rainfall_mm > 200 or temp_c > 35 or temp_c < 18) else f'<span style="color:{theme["accent2"]};">✅ Input values are within trained data range.</span>'}
         </div>
     </div>
-    """, unsafe_allow_html=True)
+</div>
+""", unsafe_allow_html=True)
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
