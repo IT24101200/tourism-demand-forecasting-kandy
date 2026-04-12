@@ -161,7 +161,7 @@ def load_festival():
         if not preds_all.empty:
             preds_all["week_start"] = pd.to_datetime(preds_all["week_start"])
             rf_preds = preds_all[
-                (preds_all["model_name"] == "random_forest") &
+                (preds_all["model_name"] == "xgboost") &
                 (preds_all["week_start"] > curr_max_date)
             ]
             for _, row in rf_preds.iterrows():
@@ -194,7 +194,7 @@ def load_festival():
         cache_path = BASE_DIR / "models/predictions_cache.csv"
         if cache_path.exists():
             cdf = pd.read_csv(cache_path)
-            cdf = cdf[cdf["model_name"] == "random_forest"]
+            cdf = cdf[cdf["model_name"] == "xgboost"]
             cdf["week_start"] = pd.to_datetime(cdf["week_start"])
             cdf = cdf[cdf["week_start"] > curr_max_date]
             for _, row in cdf.iterrows():

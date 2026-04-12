@@ -441,7 +441,7 @@ def get_current_week_prediction():
         if not df.empty:
             df["week_start"] = pd.to_datetime(df["week_start"])
             df["week_end"]   = pd.to_datetime(df["week_end"])
-            df = df[df["model_name"] == "random_forest"].sort_values("week_start")
+            df = df[df["model_name"] == "xgboost"].sort_values("week_start")
             current = df[(df["week_start"] <= today) & (df["week_end"] >= today)]
             if not current.empty:
                 return int(current.iloc[0]["predicted_arrivals"])
@@ -459,7 +459,7 @@ def get_current_week_prediction():
             df = pd.read_csv(cache_path)
             df["week_start"] = pd.to_datetime(df["week_start"])
             df["week_end"]   = pd.to_datetime(df["week_end"])
-            df = df[df["model_name"] == "random_forest"]
+            df = df[df["model_name"] == "xgboost"]
             current = df[(df["week_start"] <= today) & (df["week_end"] >= today)]
             if not current.empty:
                 return int(current.iloc[0]["predicted_arrivals"])
@@ -492,7 +492,7 @@ def get_next_week_prediction():
         df = fetch_predictions()
         if not df.empty:
             df["week_start"] = pd.to_datetime(df["week_start"])
-            df = df[df["model_name"] == "random_forest"].sort_values("week_start")
+            df = df[df["model_name"] == "xgboost"].sort_values("week_start")
             future = df[df["week_start"] >= next_week]
             if not future.empty:
                 return int(future.iloc[0]["predicted_arrivals"])
@@ -505,7 +505,7 @@ def get_next_week_prediction():
         if cache_path.exists():
             df = pd.read_csv(cache_path)
             df["week_start"] = pd.to_datetime(df["week_start"])
-            df = df[df["model_name"] == "random_forest"].sort_values(by="week_start")
+            df = df[df["model_name"] == "xgboost"].sort_values(by="week_start")
             future = df[df["week_start"] >= next_week]
             if not future.empty:
                 return int(future.iloc[0]["predicted_arrivals"])

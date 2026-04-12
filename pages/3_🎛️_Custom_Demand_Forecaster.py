@@ -19,7 +19,7 @@ require_auth()
 theme = get_theme()
 
 BASE_DIR = Path(__file__).parent.parent
-RF_PATH = BASE_DIR / "models" / "rf_model.pkl"
+RF_PATH = BASE_DIR / "models" / "xgb_model.pkl"
 SCALER_PATH = BASE_DIR / "models" / "feature_scaler.pkl"
 
 st.set_page_config(

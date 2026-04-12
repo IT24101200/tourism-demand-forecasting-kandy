@@ -81,7 +81,7 @@ def load_festival_weekly():
     if cache_path.exists():
         curr_max_date = df["week_start"].max()
         cdf = pd.read_csv(cache_path)
-        cdf = cdf[cdf["model_name"] == "random_forest"].copy()
+        cdf = cdf[cdf["model_name"] == "xgboost"].copy()
         
         def unpack_feats(row):
             feats = json.loads(row["features_used"])
@@ -268,7 +268,7 @@ st.markdown('<div class="section-header">🧠 AI Feature Importance Analysis</di
 st.markdown("This chart extracts the exact predictive weights from the underlying Machine Learning model to demonstrate how significantly **Weather Conditions** (like Rainfall and Temperature) impact tourist demand compared to calendar and festival factors. This fulfills the *Feature Importance Analysis* mitigation strategy.", unsafe_allow_html=True)
 
 try:
-    RF_PATH = BASE_DIR / "models" / "rf_model.pkl"
+    RF_PATH = BASE_DIR / "models" / "xgb_model.pkl"
     SCALER_PATH = BASE_DIR / "models" / "feature_scaler.pkl"
     
     if RF_PATH.exists() and SCALER_PATH.exists():

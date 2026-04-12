@@ -48,7 +48,7 @@ def load_data():
         preds_all = fetch_predictions()   # reads Supabase `predictions` table
         if not preds_all.empty:
             preds_all["week_start"] = pd.to_datetime(preds_all["week_start"])
-            rf_raw  = preds_all[preds_all["model_name"] == "random_forest"].copy()
+            rf_raw  = preds_all[preds_all["model_name"] == "xgboost"].copy()
             lstm_df = preds_all[preds_all["model_name"] == "lstm"].copy()
 
             # Unpack features_used JSON for RF rows
@@ -71,7 +71,7 @@ def load_data():
     if cache_path.exists():
         cdf = pd.read_csv(cache_path)
         cdf["week_start"] = pd.to_datetime(cdf["week_start"])
-        rf_raw  = cdf[cdf["model_name"] == "random_forest"].copy()
+        rf_raw  = cdf[cdf["model_name"] == "xgboost"].copy()
         lstm_df = cdf[cdf["model_name"] == "lstm"].copy()
 
         def unpack_feats(row):
@@ -143,8 +143,8 @@ with st.container():
         # Row 1: Model, CI toggle, Hist weeks, Apply
         fc1, fc2, fc3, fc4 = st.columns([2, 1.5, 2, 1])
         with fc1:
-            m_choice = st.selectbox("🤖 Active Model", ["Both", "random_forest", "lstm"],
-                                    index=["Both", "random_forest", "lstm"].index(st.session_state.live_model_choice))
+            m_choice = st.selectbox("🤖 Active Model", ["Both", "xgboost", "lstm"],
+                                    index=["Both", "xgboost", "lstm"].index(st.session_state.live_model_choice))
         with fc2:
             s_ci = st.toggle("Show 95% CI Zone", value=st.session_state.live_show_ci)
         with fc3:
@@ -338,7 +338,7 @@ else:
     with kc3:
         render_metric_card("Monsoon Weeks", str(monsoon_weeks), "high rain risk weeks", "🌦️")
     with kc4:
-        render_metric_card("RF 26-wk Avg Forecast", f"{next_rf_avg:,}", "predicted weekly arrivals", "🤖")
+        render_metric_card("XGBoost 26-wk Avg", f"{next_rf_avg:,}", "predicted weekly arrivals", "🤖")
 
 # ── Chart Title ─────────────────────────────────────────────────────────
 if view_mode == "Next 52 Weeks Only":
@@ -416,20 +416,20 @@ if not rf_display.empty:
                                text=fest, showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=2, arrowcolor="#ef4444",
                                ax=0, ay=-40, font=dict(color="#fde047", size=11, family="Inter"))
 
-# RF forecast trace
-if model_choice in ["Both", "random_forest"] and not rf_display.empty:
+# XGBoost forecast trace
+if model_choice in ["Both", "xgboost"] and not rf_display.empty:
     fig.add_trace(go.Scatter(
         x=rf_display["week_start"], y=rf_display["predicted_arrivals"],
-        name="RF Forecast", mode="lines+markers",
+        name="XGBoost Forecast", mode="lines+markers",
         line=dict(color="#34d399", width=2, dash="dot"),
-        hovertemplate="<b>%{x|%d %b %Y}</b><br>RF Pred: %{y:,.0f}<extra></extra>"
+        hovertemplate="<b>%{x|%d %b %Y}</b><br>XGBoost: %{y:,.0f}<extra></extra>"
     ))
     if show_ci and "lower_bound" in rf_display.columns:
         fig.add_trace(go.Scatter(
             x=pd.concat([rf_display["week_start"], rf_display["week_start"][::-1]]),
             y=pd.concat([rf_display["upper_bound"], rf_display["lower_bound"][::-1]]),
             fill="toself", fillcolor="rgba(52,211,153,0.1)",
-            line=dict(color="rgba(0,0,0,0)"), hoverinfo="skip", showlegend=True, name="RF 95% CI"
+            line=dict(color="rgba(0,0,0,0)"), hoverinfo="skip", showlegend=True, name="XGBoost 95% CI"
         ))
 
 # LSTM forecast trace

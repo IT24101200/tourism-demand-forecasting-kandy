@@ -123,7 +123,7 @@ def load_data():
         preds = fetch_predictions()
         if not preds.empty:
             preds["week_start"] = pd.to_datetime(preds["week_start"])
-            rf = preds[(preds["model_name"] == "random_forest") & (preds["week_start"] > hist_max)]
+            rf = preds[(preds["model_name"] == "xgboost") & (preds["week_start"] > hist_max)]
             for _, row in rf.iterrows():
                 try:    feats = json.loads(row["features_used"])
                 except: feats = {}
@@ -143,7 +143,7 @@ def load_data():
         if pred_path.exists():
             cdf = pd.read_csv(pred_path)
             cdf["week_start"] = pd.to_datetime(cdf["week_start"])
-            rf = cdf[(cdf["model_name"] == "random_forest") & (cdf["week_start"] > hist_max)]
+            rf = cdf[(cdf["model_name"] == "xgboost") & (cdf["week_start"] > hist_max)]
             for _, row in rf.iterrows():
                 try:    feats = json.loads(row["features_used"])
                 except: feats = {}
