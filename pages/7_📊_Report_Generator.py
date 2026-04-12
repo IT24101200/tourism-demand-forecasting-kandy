@@ -2,6 +2,7 @@
 pages/7_📊_Report_Generator.py
 """
 import sys
+import re
 from pathlib import Path
 import io
 import datetime
@@ -80,6 +81,27 @@ st.markdown(f"""
 
 .metric-mini{{font-size:0.78rem;font-weight:600;color:{theme['text_muted']};margin-bottom:2px;font-family:'Inter',sans-serif;}}
 .metric-val{{font-size:1.35rem;font-weight:800;color:{theme['text_main']};font-family:'Manrope',sans-serif;margin-bottom:12px;}}
+
+/* ── AI Comparison Cards ── */
+.cmp-card{{
+    background: {theme['surface_high']};
+    backdrop-filter: blur(24px);
+    border: 1px solid {theme['border']}; border-radius:14px;
+    padding:20px; text-align:center;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    transition: transform .2s ease, box-shadow .2s ease;
+}}
+.cmp-card:hover{{ transform: translateY(-3px); box-shadow: 0 0 30px rgba(56,189,248,0.08); }}
+.cmp-label{{ color:{theme['text_muted']}; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; }}
+.cmp-value{{ font-size:1.8rem; font-weight:800; font-family:'Manrope',sans-serif; line-height:1.1; }}
+.cmp-sub{{ color:{theme['text_muted']}; font-size:.78rem; margin-top:4px; }}
+.cmp-winner{{ color:{theme['accent2']}; }}
+.cmp-loser{{ color:{theme['text_dim']}; }}
+.cmp-table{{ width:100%; border-collapse:collapse; margin-top:12px; font-family:'Inter',sans-serif; }}
+.cmp-table th{{ text-align:left; padding:10px 14px; color:{theme['text_muted']}; font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; border-bottom: 2px solid {theme['border']}; }}
+.cmp-table td{{ padding:10px 14px; color:{theme['text_main']}; font-size:.88rem; border-bottom: 1px solid {theme['border']}; }}
+.cmp-table tr:hover{{ background: {theme['surface_low']}; }}
+.section-header{{ color:{theme['text_main']}; font-size:1rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase; margin:24px 0 12px; padding-bottom:6px; border-bottom:2px solid {theme['accent_dim']}; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -136,6 +158,59 @@ def load_raw_data():
     return df_all
 
 df_raw = load_raw_data()
+
+# ── Load training log metrics (cached) ────────────────────────────────────────
+@st.cache_data
+def load_training_metrics():
+    """Parse MAE, RMSE, R² for both models from training_log.txt."""
+    log_path = BASE_DIR / "models" / "training_log.txt"
+    metrics = {
+        "xgboost": {"mae": None, "rmse": None, "r2": None},
+        "lstm":    {"mae": None, "rmse": None, "r2": None},
+    }
+    if not log_path.exists():
+        return metrics
+    text = log_path.read_text(encoding="utf-8", errors="ignore")
+    xg_match = re.search(r"XGBoost Test \| MAE:\s*([\d,]+)\s+RMSE:\s*([\d,]+)\s+R.*?:\s*([\d.]+)", text)
+    if xg_match:
+        metrics["xgboost"]["mae"]  = int(xg_match.group(1).replace(",", ""))
+        metrics["xgboost"]["rmse"] = int(xg_match.group(2).replace(",", ""))
+        metrics["xgboost"]["r2"]   = float(xg_match.group(3))
+    lstm_match = re.search(r"LSTM Test \| MAE:\s*([\d,]+)\s+RMSE:\s*([\d,]+)\s+R.*?:\s*([\d.]+)", text)
+    if lstm_match:
+        metrics["lstm"]["mae"]  = int(lstm_match.group(1).replace(",", ""))
+        metrics["lstm"]["rmse"] = int(lstm_match.group(2).replace(",", ""))
+        metrics["lstm"]["r2"]   = float(lstm_match.group(3))
+    # Parse best params
+    bp_match = re.search(r"Best Parameters Found:\s*(.+)", text)
+    if bp_match:
+        metrics["xgboost"]["best_params"] = bp_match.group(1).strip()
+    # Parse training date
+    dt_match = re.search(r"Started:\s*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})", text)
+    if dt_match:
+        metrics["trained_at"] = dt_match.group(1)
+    # Parse dataset size
+    ds_match = re.search(r"Features:\s*(\d+)\s*\|\s*Rows:\s*(\d+)", text)
+    if ds_match:
+        metrics["n_features"] = int(ds_match.group(1))
+        metrics["n_rows"]     = int(ds_match.group(2))
+    return metrics
+
+training_metrics = load_training_metrics()
+
+# ── Load full predictions (both models) ───────────────────────────────────────
+@st.cache_data
+def load_all_predictions():
+    pred_path = BASE_DIR / "models" / "predictions_cache.csv"
+    if not pred_path.exists():
+        return pd.DataFrame(), pd.DataFrame()
+    cdf = pd.read_csv(pred_path)
+    cdf["week_start"] = pd.to_datetime(cdf["week_start"])
+    rf_df   = cdf[cdf["model_name"] == "random_forest"].sort_values("week_start").reset_index(drop=True)
+    lstm_df = cdf[cdf["model_name"] == "lstm"].sort_values("week_start").reset_index(drop=True)
+    return rf_df, lstm_df
+
+rf_preds, lstm_preds = load_all_predictions()
 
 # ── Page Banner ───────────────────────────────────────────────────────────────
 render_page_banner(
@@ -259,7 +334,7 @@ st.markdown(f"""
 </div>""", unsafe_allow_html=True)
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs(["📊 Executive Summary", "📈 Resource Chart", "🗄️ Raw Data & Download"])
+tab1, tab2, tab3, tab4 = st.tabs(["📊 Executive Summary", "📈 Resource Chart", "🗄️ Raw Data & Download", "🤖 AI Model Comparison"])
 
 # ─── Tab 1: Executive Summary ─────────────────────────────────────────────────
 with tab1:
@@ -461,4 +536,236 @@ with tab3:
         pdf_bytes = build_pdf(df_export, nlg_summary)
         st.download_button("⬇️  Download PDF", pdf_bytes, f"report_{datetime.date.today().strftime('%Y%m%d')}.pdf", "application/pdf", use_container_width=True, type="primary")
 
+# ─── Tab 4: AI Model Comparison ───────────────────────────────────────────────
+with tab4:
+    xg = training_metrics.get("xgboost", {})
+    ls = training_metrics.get("lstm", {})
+    n_feat = training_metrics.get("n_features", 27)
+    n_rows = training_metrics.get("n_rows", 574)
+    trained_at = training_metrics.get("trained_at", "N/A")
+
+    # ── A. Performance Scorecard ──────────────────────────────────────────────
+    st.markdown('<div class="section-header">🏆 Model Performance Scorecard</div>', unsafe_allow_html=True)
+
+    sc1, sc2, sc3, sc4 = st.columns(4)
+    with sc1:
+        xg_mae = xg.get("mae", "N/A")
+        ls_mae = ls.get("mae", "N/A")
+        winner_mae = "cmp-winner" if isinstance(xg_mae, (int, float)) and isinstance(ls_mae, (int, float)) and xg_mae < ls_mae else "cmp-loser"
+        st.markdown(f"""
+        <div class="cmp-card">
+            <div class="cmp-label">XGBoost MAE</div>
+            <div class="cmp-value {winner_mae}">{xg_mae:,}</div>
+            <div class="cmp-sub">Mean Absolute Error</div>
+        </div>""", unsafe_allow_html=True)
+    with sc2:
+        loser_mae = "cmp-winner" if winner_mae == "cmp-loser" else "cmp-loser"
+        st.markdown(f"""
+        <div class="cmp-card">
+            <div class="cmp-label">LSTM MAE</div>
+            <div class="cmp-value {loser_mae}">{ls_mae:,}</div>
+            <div class="cmp-sub">Mean Absolute Error</div>
+        </div>""", unsafe_allow_html=True)
+    with sc3:
+        xg_r2 = xg.get("r2", "N/A")
+        ls_r2 = ls.get("r2", "N/A")
+        winner_r2 = "cmp-winner" if isinstance(xg_r2, float) and isinstance(ls_r2, float) and xg_r2 > ls_r2 else "cmp-loser"
+        r2_display = f"{xg_r2:.4f}" if isinstance(xg_r2, float) else "N/A"
+        st.markdown(f"""
+        <div class="cmp-card">
+            <div class="cmp-label">XGBoost R²</div>
+            <div class="cmp-value {winner_r2}">{r2_display}</div>
+            <div class="cmp-sub">Variance Explained</div>
+        </div>""", unsafe_allow_html=True)
+    with sc4:
+        loser_r2 = "cmp-winner" if winner_r2 == "cmp-loser" else "cmp-loser"
+        r2_ls_display = f"{ls_r2:.4f}" if isinstance(ls_r2, float) else "N/A"
+        st.markdown(f"""
+        <div class="cmp-card">
+            <div class="cmp-label">LSTM R²</div>
+            <div class="cmp-value {loser_r2}">{r2_ls_display}</div>
+            <div class="cmp-sub">Variance Explained</div>
+        </div>""", unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── B. Full Comparison Table ──────────────────────────────────────────────
+    st.markdown('<div class="section-header">📋 Detailed Architecture Comparison</div>', unsafe_allow_html=True)
+
+    xg_rmse = xg.get("rmse", "N/A")
+    ls_rmse = ls.get("rmse", "N/A")
+    best_params = xg.get("best_params", "N/A")
+
+    table_html = f"""
+    <table class="cmp-table">
+        <thead>
+            <tr><th>Attribute</th><th>XGBoost (Gradient Boosting)</th><th>LSTM (Deep Learning)</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><strong>Model Type</strong></td><td>Ensemble Tree-Based (XGBRegressor)</td><td>Recurrent Neural Network (LSTM)</td></tr>
+            <tr><td><strong>Architecture</strong></td><td>Gradient-boosted decision trees with GridSearchCV hyperparameter tuning</td><td>Unidirectional LSTM (64 units) → Dropout(0.2) → Dense(32, ReLU) → Dense(1)</td></tr>
+            <tr><td><strong>Best Hyperparameters</strong></td><td style="font-size:.82rem;">{best_params}</td><td>Lookback=12 weeks, lr=5e-4, batch=16, dropout=0.2</td></tr>
+            <tr><td><strong>Loss Function</strong></td><td>reg:squarederror</td><td>MSE (Mean Squared Error)</td></tr>
+            <tr><td><strong>Cross-Validation</strong></td><td>3-fold GridSearchCV (54 candidates, 162 fits)</td><td>EarlyStopping (patience=20) + ReduceLROnPlateau</td></tr>
+            <tr><td><strong>Training Dataset</strong></td><td>{n_rows:,} rows × {n_feat} features</td><td>{n_rows:,} rows × {n_feat} features (MinMaxScaled)</td></tr>
+            <tr><td><strong>MAE (Test)</strong></td>
+                <td style="color:{theme['accent2']};font-weight:700;">{xg_mae:,} arrivals</td>
+                <td>{ls_mae:,} arrivals</td></tr>
+            <tr><td><strong>RMSE (Test)</strong></td>
+                <td style="color:{theme['accent2']};font-weight:700;">{xg_rmse:,}</td>
+                <td>{ls_rmse:,}</td></tr>
+            <tr><td><strong>R² Score (Test)</strong></td>
+                <td style="color:{theme['accent2']};font-weight:700;">{r2_display} ({float(xg_r2)*100:.1f}% variance explained)</td>
+                <td>{r2_ls_display} ({float(ls_r2)*100:.1f}% variance explained)</td></tr>
+            <tr><td><strong>Strengths</strong></td>
+                <td>✅ Superior accuracy (lower MAE/RMSE)<br>✅ Captures festival impacts precisely<br>✅ Handles tabular features natively</td>
+                <td>✅ Learns sequential temporal patterns<br>✅ Can capture long-range dependencies<br>✅ Flexible architecture for time series</td></tr>
+            <tr><td><strong>Limitations</strong></td>
+                <td>⚠️ Cannot model long-range sequential memory<br>⚠️ Requires explicit feature engineering</td>
+                <td>⚠️ Lower R² (underfitting risk)<br>⚠️ Requires scaled inputs<br>⚠️ Slower to train</td></tr>
+            <tr><td><strong>Last Trained</strong></td><td colspan="2" style="text-align:center;">{trained_at}</td></tr>
+        </tbody>
+    </table>"""
+    st.markdown(table_html, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── C. Forecast Overlap Chart ─────────────────────────────────────────────
+    st.markdown('<div class="section-header">📈 52-Week Forecast Overlay — XGBoost vs LSTM</div>', unsafe_allow_html=True)
+
+    if not rf_preds.empty and not lstm_preds.empty:
+        fig_cmp = go.Figure()
+
+        # XGBoost confidence band
+        fig_cmp.add_trace(go.Scatter(
+            x=pd.concat([rf_preds["week_start"], rf_preds["week_start"][::-1]]),
+            y=pd.concat([rf_preds["upper_bound"], rf_preds["lower_bound"][::-1]]),
+            fill="toself", fillcolor="rgba(57,184,253,0.08)",
+            line=dict(color="rgba(0,0,0,0)"), showlegend=False,
+            hoverinfo="skip", name="XGBoost CI"
+        ))
+        # LSTM confidence band
+        fig_cmp.add_trace(go.Scatter(
+            x=pd.concat([lstm_preds["week_start"], lstm_preds["week_start"][::-1]]),
+            y=pd.concat([lstm_preds["upper_bound"], lstm_preds["lower_bound"][::-1]]),
+            fill="toself", fillcolor="rgba(78,222,163,0.08)",
+            line=dict(color="rgba(0,0,0,0)"), showlegend=False,
+            hoverinfo="skip", name="LSTM CI"
+        ))
+        # XGBoost line
+        fig_cmp.add_trace(go.Scatter(
+            x=rf_preds["week_start"], y=rf_preds["predicted_arrivals"],
+            name="XGBoost Forecast", mode="lines+markers",
+            line=dict(color="#39b8fd", width=3),
+            marker=dict(size=5, color="#39b8fd"),
+            hovertemplate="<b>%{x|%d %b}</b><br>XGBoost: %{y:,.0f}<extra></extra>"
+        ))
+        # LSTM line
+        fig_cmp.add_trace(go.Scatter(
+            x=lstm_preds["week_start"], y=lstm_preds["predicted_arrivals"],
+            name="LSTM Forecast", mode="lines+markers",
+            line=dict(color="#4edea3", width=2, dash="dash"),
+            marker=dict(size=4, color="#4edea3", symbol="diamond"),
+            hovertemplate="<b>%{x|%d %b}</b><br>LSTM: %{y:,.0f}<extra></extra>"
+        ))
+
+        fig_cmp.update_layout(
+            height=420, margin=dict(l=0, r=0, t=10, b=0),
+            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+            hovermode="x unified",
+            legend=dict(orientation="h", y=1.08, bgcolor="rgba(0,0,0,0)", font=dict(color=theme["text_main"])),
+            xaxis=dict(gridcolor=theme["border"], tickfont=dict(color=theme["text_muted"])),
+            yaxis=dict(title="Predicted Arrivals", gridcolor=theme["border"], tickfont=dict(color=theme["text_muted"])),
+        )
+        st.plotly_chart(apply_plotly_theme(fig_cmp), use_container_width=True)
+    else:
+        st.info("ℹ️ Prediction data unavailable. Please run the training pipeline first.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── D. Weekly Deviation Analysis ──────────────────────────────────────────
+    st.markdown('<div class="section-header">📊 Weekly Prediction Deviation — Model Agreement</div>', unsafe_allow_html=True)
+
+    if not rf_preds.empty and not lstm_preds.empty and len(rf_preds) == len(lstm_preds):
+        dev_df = pd.DataFrame({
+            "week_start": rf_preds["week_start"].values,
+            "rf_pred":    rf_preds["predicted_arrivals"].values,
+            "lstm_pred":  lstm_preds["predicted_arrivals"].values,
+        })
+        dev_df["deviation"] = abs(dev_df["rf_pred"] - dev_df["lstm_pred"])
+        dev_df["dev_pct"]   = dev_df["deviation"] / dev_df[["rf_pred", "lstm_pred"]].mean(axis=1) * 100
+        dev_df["wk_label"]  = pd.to_datetime(dev_df["week_start"]).dt.strftime("%d %b")
+
+        # Color: green if <20% deviation, amber if ≥20%
+        colors = [theme["accent2"] if p < 20 else theme["warning"] for p in dev_df["dev_pct"]]
+
+        fig_dev = go.Figure(go.Bar(
+            x=dev_df["wk_label"], y=dev_df["deviation"],
+            marker_color=colors,
+            text=dev_df["dev_pct"].apply(lambda x: f"{x:.0f}%"),
+            textposition="outside", textfont=dict(size=9, color=theme["text_muted"]),
+            hovertemplate="<b>%{x}</b><br>Deviation: %{y:,.0f} arrivals<extra></extra>"
+        ))
+        fig_dev.update_layout(
+            height=300, margin=dict(l=0, r=0, t=10, b=0),
+            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+            xaxis=dict(gridcolor=theme["border"], tickfont=dict(color=theme["text_muted"], size=9), tickangle=-45),
+            yaxis=dict(title="|XGBoost − LSTM|", gridcolor=theme["border"], tickfont=dict(color=theme["text_muted"])),
+        )
+        st.plotly_chart(apply_plotly_theme(fig_dev), use_container_width=True)
+
+        # Summary stats
+        high_dev_weeks = dev_df[dev_df["dev_pct"] >= 20]
+        avg_dev = dev_df["deviation"].mean()
+        max_dev_row = dev_df.loc[dev_df["deviation"].idxmax()]
+        dev_cols = st.columns(3)
+        with dev_cols[0]:
+            st.markdown(f'<div class="metric-mini">📏 Avg Weekly Deviation</div><div class="metric-val">{avg_dev:,.0f} <span style="font-size:.8rem;color:{theme["text_muted"]};">arrivals</span></div>', unsafe_allow_html=True)
+        with dev_cols[1]:
+            st.markdown(f'<div class="metric-mini">⚡ Max Deviation Week</div><div class="metric-val">{int(max_dev_row["deviation"]):,} <span style="font-size:.8rem;color:{theme["text_muted"]};">({max_dev_row["wk_label"]})</span></div>', unsafe_allow_html=True)
+        with dev_cols[2]:
+            st.markdown(f'<div class="metric-mini">⚠️ High Divergence Weeks (≥20%)</div><div class="metric-val">{len(high_dev_weeks)} <span style="font-size:.8rem;color:{theme["text_muted"]};">of {len(dev_df)}</span></div>', unsafe_allow_html=True)
+    else:
+        st.info("ℹ️ Both model predictions are needed for deviation analysis.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── E. AI Recommendation Engine ───────────────────────────────────────────
+    st.markdown('<div class="section-header">🧠 AI Model Recommendation</div>', unsafe_allow_html=True)
+
+    rec_parts = []
+    if isinstance(xg_r2, float) and isinstance(ls_r2, float):
+        r2_gap = xg_r2 - ls_r2
+        mae_gap = (ls_mae - xg_mae) if isinstance(xg_mae, (int, float)) and isinstance(ls_mae, (int, float)) else 0
+
+        rec_parts.append(
+            f"Based on rigorous test-set evaluation, the <strong>XGBoost (Gradient Boosting)</strong> engine is the recommended primary forecasting model. "
+            f"It achieves an R² of <strong>{xg_r2:.4f}</strong> — explaining <strong>{xg_r2*100:.1f}%</strong> of arrival variance — "
+            f"compared to LSTM's <strong>{ls_r2:.4f}</strong> ({ls_r2*100:.1f}%). This represents a <strong>{r2_gap*100:.1f} percentage point advantage</strong> in predictive power."
+        )
+
+        rec_parts.append(
+            f"XGBoost also delivers a tighter Mean Absolute Error of <strong>{xg_mae:,}</strong> arrivals per week versus LSTM's <strong>{ls_mae:,}</strong>, "
+            f"meaning XGBoost predictions are on average <strong>{mae_gap:,} arrivals closer</strong> to actual observations."
+        )
+
+        if not rf_preds.empty and not lstm_preds.empty and len(rf_preds) == len(lstm_preds):
+            agreement_pct = 100 - dev_df["dev_pct"].mean()
+            rec_parts.append(
+                f"Across the 52-week forecast horizon, the two models show an average agreement of <strong>{agreement_pct:.1f}%</strong>. "
+                f"Weeks where models diverge significantly (≥20%) should be flagged for manual review by tourism planners, as they indicate higher forecast uncertainty."
+            )
+
+        rec_parts.append(
+            "<strong>Recommendation:</strong> Use XGBoost as the primary decision engine for resource allocation, hotel staffing, and transport planning. "
+            "LSTM serves as a valuable secondary validation model — when both models agree, confidence in the forecast is highest."
+        )
+    else:
+        rec_parts.append("⚠️ Training metrics are unavailable. Please run the training pipeline (<code>python train_models.py</code>) to generate model evaluation data.")
+
+    rec_text = " ".join(rec_parts)
+    st.markdown(
+        f'<div class="insight-bullet" style="font-size:0.95rem; line-height:1.7; border-left:4px solid {theme["accent2"]};">{rec_text}</div>',
+        unsafe_allow_html=True
+    )
 

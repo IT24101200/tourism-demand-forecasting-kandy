@@ -10,9 +10,9 @@ from utils.theme import apply_custom_theme, get_theme
 _NAV_PAGES = [
     ("🏠",  "National Overview",   "pages/1_🏠_National_Overview.py"),
     ("📈",  "Live Demand",         "pages/2__Live_Demand.py"),
-    ("🎛️", "What-If Simulator",  "pages/3_🎛️_What_If_Simulator.py"),
+    ("🎛️", "Custom Demand Forecaster",  "pages/3_🎛️_Custom_Demand_Forecaster.py"),
     ("🏨",  "Resource Planner",    "pages/4_🏨_Resource_Planner.py"),
-    ("🌦️", "Weather Impact",      "pages/5_🌦️_Weather_Impact.py"),
+    ("🌦️", "Climate Impact Forecaster", "pages/5_🌦️_Climate_Impact_Forecaster.py"),
     ("🐘",  "Festival Forecaster", "pages/6_🐘_Festival_Forecaster.py"),
     ("📊",  "Report Generator",    "pages/7_📊_Report_Generator.py"),
     ("👤",  "Profile Management",  "pages/8_👤_Profile.py"),

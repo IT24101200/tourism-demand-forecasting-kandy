@@ -217,10 +217,9 @@ render_page_banner(
 )
 
 # ── Inline Filter Bar ────────────────────────────────────────────────────────
-st.markdown('<div class="filter-bar"></div>', unsafe_allow_html=True)
 
 with st.container():
-    st.markdown("<div style='margin-top:-70px; padding: 0 24px 24px 24px; position:relative; z-index:10;'>", unsafe_allow_html=True)
+    st.markdown("<div style='padding: 0 0 24px 0; position:relative; z-index:10;'>", unsafe_allow_html=True)
     with st.form("rp_filters", border=False):
 
         # Row 1: Planning week + forward window

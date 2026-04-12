@@ -330,7 +330,7 @@ def render_auth_page():
             '<li>AI-powered weekly arrival forecasting</li>'
             '<li>Festival &amp; weather impact analysis</li>'
             '<li>Resource &amp; capacity planning tools</li>'
-            '<li>What-If scenario simulator</li>'
+            '<li>Custom Demand Forecaster</li>'
             '</ul></div>'
         )
         st.markdown(_hero_html, unsafe_allow_html=True)

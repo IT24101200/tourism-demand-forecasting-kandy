@@ -134,13 +134,11 @@ st.markdown("""
   .forecast-warning-card .warn-body {
       color: #cbd5e1; font-size: 0.88rem; line-height: 1.6;
   }
-</style>
-<div class="filter-bar"></div>
-""", unsafe_allow_html=True)
+</style>""", unsafe_allow_html=True)
 
 # ── Filter Form ─────────────────────────────────────────────────────────
 with st.container():
-    st.markdown("<div style='margin-top:-80px; padding: 0 24px 24px 24px; position:relative; z-index:10;'>", unsafe_allow_html=True)
+    st.markdown("<div style='padding: 0 0 24px 0; position:relative; z-index:10;'>", unsafe_allow_html=True)
     with st.form("live_demand_filters", border=False):
         # Row 1: Model, CI toggle, Hist weeks, Apply
         fc1, fc2, fc3, fc4 = st.columns([2, 1.5, 2, 1])

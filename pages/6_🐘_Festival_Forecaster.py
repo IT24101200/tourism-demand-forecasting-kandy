@@ -85,6 +85,51 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     border-radius: 16px; padding: 18px 24px; margin-bottom: 24px;
     box-shadow: 0 0 20px rgba(0,0,0,0.1);
 }
+
+/* Glassmorphic Pulse Cards */
+.alert-card {
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px 20px; margin-bottom: 16px;
+    border-radius: 12px; backdrop-filter: blur(16px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    position: relative; overflow: hidden;
+}
+.alert-urgent {
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+.alert-urgent::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: #ef4444; box-shadow: 0 0 10px #ef4444;
+}
+.alert-upcoming {
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.alert-upcoming::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: #f59e0b;
+}
+.alert-icon { font-size: 2rem; position: relative; }
+.pulse-ring {
+    position: absolute; top: -4px; right: -4px; bottom: -4px; left: -4px;
+    border-radius: 50%; border: 2px solid #ef4444;
+    animation: pulse 2s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes pulse {
+    0% { transform: scale(0.8); opacity: 1; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+.alert-content { flex: 1; font-family: 'Inter', sans-serif; }
+.alert-title { font-size: 1.05rem; font-weight: 700; font-family: 'Manrope', sans-serif; margin-bottom: 4px; }
+.alert-urgent .alert-title { color: #fecaca; }
+.alert-upcoming .alert-title { color: #fde68a; }
+.alert-text { font-size: 0.85rem; color: #cbd5e1; line-height: 1.5; }
+.alert-text strong { color: #f8fafc; font-weight: 700; }
+.alert-badge {
+    background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px;
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; color:#fff;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -259,29 +304,53 @@ render_page_banner(
     icon="🐘",
 )
 
-# ── Existing Alert Banners (kept per user preference) ───────────────────────
+# ── Upcoming Alerts ───────────────────────────────────
 if not upcoming_30.empty:
-    for _, urow in upcoming_30.iterrows():
+    st.markdown('<div class="section-header">🚨 Upcoming Festival Alerts</div>', unsafe_allow_html=True)
+    num_alerts = len(upcoming_30)
+    cols = st.columns(max(1, min(3, num_alerts)))
+    for i, (_, urow) in enumerate(upcoming_30.iterrows()):
         fest_name  = urow["primary_festival"].replace("_", " ")
         days_ahead = (urow["week_start"].date() - today).days
         meta       = FESTIVAL_META.get(urow["primary_festival"], {"icon": "🎉"})
         icon       = meta["icon"]
         mult       = urow["festival_demand_multiplier"]
         pred_arr   = int(urow.get("estimated_weekly_kandy_arrivals", 0))
-        if days_ahead <= 7:
-            st.error(
-                f"🚨 **Upcoming Event Alert: {icon} {fest_name} next week** — "
-                f"Prepare for a surge! Demand multiplier: ×{mult:.2f}. "
-                f"**Expected Arrivals: {pred_arr:,}**. "
-                f"Coordinate staffing, transport and accommodation NOW."
-            )
-        else:
-            st.warning(
-                f"⏰ **{icon} {fest_name}** in {days_ahead} days (week of "
-                f"{urow['week_start'].strftime('%d %b %Y')}). "
-                f"Expected demand multiplier: ×{mult:.2f}. "
-                f"**Predicted Arrivals: {pred_arr:,}**."
-            )
+        
+        with cols[i % 3]:
+            if days_ahead <= 7:
+                html = f"""
+                <div class="alert-card alert-urgent">
+                    <div class="alert-icon">
+                        <div class="pulse-ring"></div>
+                        {icon}
+                    </div>
+                    <div class="alert-content">
+                        <div class="alert-title">🚨 Urgent: {fest_name} Next Week</div>
+                        <div class="alert-text">
+                            Prepare for a surge! Multiplier: ×<strong>{mult:.2f}</strong><br>
+                            Expected Arrivals: <strong>{pred_arr:,}</strong>
+                        </div>
+                    </div>
+                    <div class="alert-badge">{days_ahead} Days</div>
+                </div>
+                """
+            else:
+                html = f"""
+                <div class="alert-card alert-upcoming">
+                    <div class="alert-icon">{icon}</div>
+                    <div class="alert-content">
+                        <div class="alert-title">⏰ {fest_name} Approaching</div>
+                        <div class="alert-text">
+                            Week of <strong>{urow['week_start'].strftime('%d %b %Y')}</strong><br>
+                            Multiplier: ×<strong>{mult:.2f}</strong> | Arrivals: <strong>{pred_arr:,}</strong>
+                        </div>
+                    </div>
+                    <div class="alert-badge">{days_ahead} Days</div>
+                </div>
+                """
+            st.markdown(html, unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
 
 # ── Next Festival Countdown Cards ────────────────────────────────────────────
 upcoming_all = df[
@@ -482,75 +551,81 @@ else:
 # ── Section 3: Festival Timeline + Insights ──────────────────────────────────
 st.markdown('<div class="section-header">📅 Festival Arrival Timeline</div>', unsafe_allow_html=True)
 
-col_l, col_r = st.columns([3, 2])
+timeline = df_chart.copy()
+if timeline.empty:
+    st.info("No timeline data for the current filters.")
+else:
+    timeline["label"] = timeline["primary_festival"].str.replace("_", " ")
+    timeline["is_upcoming"] = timeline["week_start"] >= today_pd
 
-with col_l:
-    timeline = df_chart.copy()
-    if timeline.empty:
-        st.info("No timeline data for the current filters.")
-    else:
-        timeline["label"] = timeline["primary_festival"].str.replace("_", " ")
-        timeline["is_upcoming"] = timeline["week_start"] >= today_pd
-
-        fig_time = px.scatter(
-            timeline, x="week_start", y="estimated_weekly_kandy_arrivals",
-            color="primary_festival",
-            color_discrete_map={k: v["color"] for k, v in FESTIVAL_META.items()},
-            hover_data=["primary_festival", "festival_demand_multiplier"],
-            labels={"week_start": "Week", "estimated_weekly_kandy_arrivals": "Arrivals",
-                    "primary_festival": "Festival"},
-            size="festival_demand_multiplier",
-            size_max=18,
+    fig_time = px.scatter(
+        timeline, x="week_start", y="estimated_weekly_kandy_arrivals",
+        color="label",
+        color_discrete_map={k.replace("_", " "): v["color"] for k, v in FESTIVAL_META.items()},
+        hover_data=["festival_demand_multiplier"],
+        labels={"week_start": "Week", "estimated_weekly_kandy_arrivals": "Arrivals",
+                "label": "Festival", "festival_demand_multiplier": "Demand Multiplier"},
+        size="festival_demand_multiplier",
+        size_max=18,
+    )
+    fig_time.update_traces(marker=dict(opacity=0.8))
+    fig_time.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=450,
+        legend=dict(
+            orientation="v", yanchor="top", y=1, xanchor="left", x=1.02,
+            bgcolor="rgba(0,0,0,0)", font=dict(color="#bdc8d1"), title_text=""
+        ),
+        xaxis=dict(gridcolor="rgba(62,72,79,0.15)", tickfont=dict(color="#87929a"),
+                   title=f"Year Range: {_yr_min} – {_yr_max}"),
+        yaxis=dict(gridcolor="rgba(62,72,79,0.15)", tickfont=dict(color="#87929a")),
+        title=dict(font=dict(color="#dae2fd", size=13)),
+        margin=dict(l=0, r=130, t=20, b=0),
+    )
+    # Draw "Today" line for All Data / Future Only modes
+    if _view_mode != "Historical Only":
+        fig_time.add_vline(x=today_pd, line_width=2, line_dash="dash", line_color="#38BDF8")
+        fig_time.add_annotation(
+            x=today_pd, y=1, yref="paper", text="<b>Today</b>",
+            showarrow=False, font=dict(color="#38BDF8", size=11),
+            bgcolor="rgba(15,23,42,0.8)", bordercolor="#38BDF8", borderpad=3
         )
-        fig_time.update_traces(marker=dict(opacity=0.8))
-        fig_time.update_layout(
-            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=380,
-            legend=dict(bgcolor="rgba(0,0,0,0)", font=dict(color="#bdc8d1"), title_text=""),
-            xaxis=dict(gridcolor="rgba(62,72,79,0.15)", tickfont=dict(color="#87929a"),
-                       title=f"Year Range: {_yr_min} – {_yr_max}"),
-            yaxis=dict(gridcolor="rgba(62,72,79,0.15)", tickfont=dict(color="#87929a")),
-            title=dict(font=dict(color="#dae2fd", size=13)),
-            margin=dict(l=0, r=0, t=20, b=0),
-        )
-        # Draw "Today" line for All Data / Future Only modes
-        if _view_mode != "Historical Only":
-            fig_time.add_vline(x=today_pd, line_width=2, line_dash="dash", line_color="#38BDF8")
-            fig_time.add_annotation(
-                x=today_pd, y=1, yref="paper", text="<b>Today</b>",
-                showarrow=False, font=dict(color="#38BDF8", size=11),
-                bgcolor="rgba(15,23,42,0.8)", bordercolor="#38BDF8", borderpad=3
-            )
-        st.plotly_chart(apply_plotly_theme(fig_time), use_container_width=True)
+    st.plotly_chart(apply_plotly_theme(fig_time), use_container_width=True)
 
-with col_r:
-    st.markdown('<div class="section-header">💡 Festival Insights Engine</div>', unsafe_allow_html=True)
-    top3_src = fst_stats_filtered if not fst_stats_filtered.empty else fst_stats
-    top3 = top3_src[top3_src["primary_festival"].isin(_sel_fests)].head(3)
-    for _, row in top3.iterrows():
-        meta   = FESTIVAL_META.get(row["primary_festival"], {"icon": "🎉"})
-        surge  = row["surge_pct"]
-        weeks  = int(row["num_weeks"])
-        img_name = "general_festival_thumb_1774175544601.png"
-        if row["primary_festival"] == "Esala_Perahera":
-            img_name = "esala_perahera_thumb_1774175478609.png"
-        img_path = BASE_DIR / "assets" / img_name
-        img_b64 = ""
-        if img_path.exists():
-            img_b64 = f"data:image/png;base64,{get_base64_of_bin_file(str(img_path))}"
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown('<div class="section-header">💡 Festival Insights Engine</div>', unsafe_allow_html=True)
+top3_src = fst_stats_filtered if not fst_stats_filtered.empty else fst_stats
+top3 = top3_src[top3_src["primary_festival"].isin(_sel_fests)].head(3)
 
-        st.markdown(f"""
-        <div class="insight-box">
-            <img src="{img_b64}">
-            <div class="insight-text">
-                <h4>{meta["icon"]} {row["primary_festival"].replace("_", " ")} — +{surge:.1f}% surge</h4>
-                <p>{meta.get("desc","Cultural event with significant tourism impact.")}<br>
-                   Observed across {weeks} weeks in filter. <b>{int(row["avg_arrivals"]):,} arrivals/week.</b></p>
-            </div>
-        </div>""", unsafe_allow_html=True)
+if not top3.empty:
+    insight_cols = st.columns(len(top3))
+    for i, (_, row) in enumerate(top3.iterrows()):
+        with insight_cols[i]:
+            meta   = FESTIVAL_META.get(row["primary_festival"], {"icon": "🎉"})
+            surge  = row["surge_pct"]
+            weeks  = int(row["num_weeks"])
+            img_name = "general_festival_thumb_1774175544601.png"
+            if row["primary_festival"] == "Esala_Perahera":
+                img_name = "esala_perahera_thumb_1774175478609.png"
+            img_path = BASE_DIR / "assets" / img_name
+            img_b64 = ""
+            if img_path.exists():
+                img_b64 = f"data:image/png;base64,{get_base64_of_bin_file(str(img_path))}"
 
-    esala = top3_src[top3_src["primary_festival"] == "Esala_Perahera"]
-    if not esala.empty:
-        esala_pct = esala.iloc[0]["surge_pct"]
-        st.info(f"🐘 **Esala Perahera** causes a **{esala_pct:.0f}% surge** over normal weeks — the single largest tourism driver in Kandy.")
+            st.markdown(f"""
+            <div class="insight-box" style="height: 100%;">
+                <img src="{img_b64}">
+                <div class="insight-text">
+                    <h4>{meta["icon"]} {row["primary_festival"].replace("_", " ")} — +{surge:.1f}% surge</h4>
+                    <p>{meta.get("desc","Cultural event with significant tourism impact.")}<br>
+                       Observed across {weeks} weeks in filter. <b>{int(row["avg_arrivals"]):,} arrivals/w.</b></p>
+                </div>
+            </div>""", unsafe_allow_html=True)
+
+esala = top3_src[top3_src["primary_festival"] == "Esala_Perahera"]
+if not esala.empty:
+    st.markdown("<br>", unsafe_allow_html=True)
+    esala_pct = esala.iloc[0]["surge_pct"]
+    st.info(f"🐘 **Esala Perahera** causes a **{esala_pct:.0f}% surge** over normal weeks — the single largest tourism driver in Kandy.")
+
 
 st.caption(f"Data: {_view_mode} · Years: {_yr_min}–{_yr_max} · Min Arrivals: {_min_arr:,} · Sources: Historical CSV + Supabase Predictions")

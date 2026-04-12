@@ -1,5 +1,5 @@
 """
-pages/5_🌦️_Weather_Impact.py  —  Weather Predictor & Impact
+pages/5_🌦️_Climate_Impact_Forecaster.py  —  Climate Impact Forecaster
 """
 import sys
 from pathlib import Path
@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 require_auth()
 
 st.set_page_config(
-    page_title="Weather Impact | Kandy Tourism DSS",
+    page_title="Climate Impact Forecaster | Kandy Tourism DSS",
     page_icon="🌦️", layout="wide"
 )
 
@@ -51,10 +51,10 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-render_sidebar(active_page="Weather Impact")
+render_sidebar(active_page="Climate Impact Forecaster")
 
 render_page_banner(
-    title="Weather Predictor & Impact",
+    title="Climate Impact Forecaster",
     subtitle="Upcoming weather outlook for Kandy — monitor rainfall, temperature and monsoon conditions and their effect on tourist arrivals.",
     icon="🌦️",
 )
@@ -159,81 +159,79 @@ if "avg_weekly_rainfall_mm" in df_all.columns:
                       fillcolor="rgba(248,113,113,.12)", layer="below", line_width=0)
 
 fig.update_layout(
-    height=400, margin=dict(l=0, r=0, t=20, b=0),
+    height=400, margin=dict(l=0, r=160, t=20, b=0),
     paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-    hovermode="x unified", legend=dict(bgcolor="rgba(0,0,0,0)", font=dict(color="#dae2fd")),
+    hovermode="x unified", legend=dict(
+        orientation="v", yanchor="top", y=1, xanchor="left", x=1.06,
+        bgcolor="rgba(0,0,0,0)", font=dict(color="#dae2fd")
+    ),
     xaxis=dict(gridcolor="rgba(62,72,79,0.15)", tickfont=dict(color="#bdc8d1")),
     yaxis=dict(title="Temperature (°C)", gridcolor="rgba(62,72,79,0.15)", tickfont=dict(color="#87929a")),
     yaxis2=dict(title="Rainfall (mm)", gridcolor="rgba(0,0,0,0)", tickfont=dict(color="#87929a"))
 )
 st.plotly_chart(apply_plotly_theme(fig), use_container_width=True)
 
-col_a, col_b = st.columns([1.5, 1])
+st.markdown('<div class="section-header">🔗 Rainfall vs Tourist Arrivals Correlation</div>', unsafe_allow_html=True)
+if "avg_weekly_rainfall_mm" in df_all.columns and "estimated_weekly_kandy_arrivals" in df_all.columns:
+    fig_scatter = px.scatter(
+        df_all, x="avg_weekly_rainfall_mm", y="estimated_weekly_kandy_arrivals",
+        color="primary_festival" if "primary_festival" in df_all.columns else None,
+        labels={"avg_weekly_rainfall_mm": "Rainfall (mm)", "estimated_weekly_kandy_arrivals": "Weekly Arrivals"},
+        title="Weather Impact on Tourist Arrivals"
+    )
+    fig_scatter.update_traces(marker=dict(size=8, opacity=0.7))
+    fig_scatter.update_layout(
+        height=440, margin=dict(l=0, r=130, t=40, b=0),
+        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=dict(gridcolor="rgba(62,72,79,0.15)", tickfont=dict(color="#bdc8d1")),
+        yaxis=dict(gridcolor="rgba(62,72,79,0.15)", tickfont=dict(color="#bdc8d1")),
+        legend=dict(
+            bgcolor="rgba(19,27,46,0.85)",
+            bordercolor="rgba(62,72,79,0.3)",
+            borderwidth=1,
+            font=dict(color="#dae2fd", size=11),
+            x=1.01, y=1,
+            xanchor="left",
+            yanchor="top",
+            title=dict(text="Festival Type", font=dict(color="#8ed5ff", size=12))
+        ),
+        title=dict(font=dict(color="#dae2fd", family="Manrope"))
+    )
+    st.plotly_chart(apply_plotly_theme(fig_scatter), use_container_width=True)
 
-with col_a:
-    st.markdown('<div class="section-header">🔗 Rainfall vs Tourist Arrivals Correlation</div>', unsafe_allow_html=True)
-    if "avg_weekly_rainfall_mm" in df_all.columns and "estimated_weekly_kandy_arrivals" in df_all.columns:
-        fig_scatter = px.scatter(
-            df_all, x="avg_weekly_rainfall_mm", y="estimated_weekly_kandy_arrivals",
-            color="primary_festival" if "primary_festival" in df_all.columns else None,
-            labels={"avg_weekly_rainfall_mm": "Rainfall (mm)", "estimated_weekly_kandy_arrivals": "Weekly Arrivals"},
-            title="Weather Impact on Tourist Arrivals"
-        )
-        fig_scatter.update_traces(marker=dict(size=8, opacity=0.7))
-        fig_scatter.update_layout(
-            height=440, margin=dict(l=0, r=200, t=40, b=0),
-            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-            xaxis=dict(gridcolor="rgba(62,72,79,0.15)", tickfont=dict(color="#bdc8d1")),
-            yaxis=dict(gridcolor="rgba(62,72,79,0.15)", tickfont=dict(color="#bdc8d1")),
-            legend=dict(
-                bgcolor="rgba(19,27,46,0.85)",
-                bordercolor="rgba(62,72,79,0.3)",
-                borderwidth=1,
-                font=dict(color="#dae2fd", size=11),
-                x=1.01, y=1,
-                xanchor="left",
-                yanchor="top",
-                title=dict(text="Festival Type", font=dict(color="#8ed5ff", size=12))
-            ),
-            title=dict(font=dict(color="#dae2fd", family="Manrope"))
-        )
-        st.plotly_chart(apply_plotly_theme(fig_scatter), use_container_width=True)
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown('<div class="section-header">⚠️ Weather Impact Alerts</div>', unsafe_allow_html=True)
+future_alerts = df_all[df_all["week_start"] >= today].head(4)
 
-with col_b:
-    st.markdown('<div class="section-header">⚠️ Weather Impact Alerts</div>', unsafe_allow_html=True)
-    future_alerts = df_all[df_all["week_start"] >= today].head(4)
-    alerts_shown = False
-    
-    if not future_alerts.empty:
-        for _, row in future_alerts.iterrows():
+if not future_alerts.empty:
+    alert_cols = st.columns(len(future_alerts))
+    for i, (_, row) in enumerate(future_alerts.iterrows()):
+        with alert_cols[i]:
             week_str = row["week_start"].strftime("%d %b %Y")
             rain_val = row.get("avg_weekly_rainfall_mm", 0)
             arr_val = row.get("estimated_weekly_kandy_arrivals", 0)
             
             if rain_val > RAIN_THRESH:
-                alerts_shown = True
                 st.markdown(f"""
-                <div class="alert-card alert-heavy">
+                <div class="alert-card alert-heavy" style="height: 100%; margin-top: 0;">
                     <div class="alert-icon">⛈️</div>
-                    <div class="alert-text"><h4>Heavy Rain — {week_str}</h4><p><b>{arr_val:,.0f} expected arrivals.</b> {rain_val:.0f} mm rainfall forecast. Recommend indoor activities: Kandy Museum, Tea Factory tours, Spice Garden visits.</p></div>
+                    <div class="alert-text"><h4>Heavy Rain — {week_str}</h4><p><b>{arr_val:,.0f} arrivals.</b> {rain_val:.0f} mm rain forecast. Recommend indoor activities.</p></div>
                 </div>""", unsafe_allow_html=True)
             elif row.get("is_monsoon_week", 0) == 1:
-                alerts_shown = True
                 st.markdown(f"""
-                <div class="alert-card alert-monsoon">
+                <div class="alert-card alert-monsoon" style="height: 100%; margin-top: 0;">
                     <div class="alert-icon">🌧️</div>
                     <div class="alert-text"><h4>Monsoon Week — {week_str}</h4><p>Forecasted {rain_val:.0f} mm. Prepare umbrellas and indoor dining facilities.</p></div>
                 </div>""", unsafe_allow_html=True)
-                
-    if not alerts_shown:
-        st.markdown("""
-        <div class="alert-card alert-ok">
-            <div class="alert-icon">☀️</div>
-            <div class="alert-text">
-                <h4>All Clear — Favourable Conditions</h4>
-                <p>No high-rainfall weeks in the recent period. Great time for outdoor tourism!</p>
-            </div>
-        </div>""", unsafe_allow_html=True)
+            else:
+                st.markdown(f"""
+                <div class="alert-card alert-ok" style="height: 100%; margin-top: 0;">
+                    <div class="alert-icon">☀️</div>
+                    <div class="alert-text">
+                        <h4>Favourable — {week_str}</h4>
+                        <p>{arr_val:,.0f} exp. arrivals. Clear weather for outdoor tourism!</p>
+                    </div>
+                </div>""", unsafe_allow_html=True)
 
 st.markdown('<div class="section-header">🗓️ Monthly Climate Pattern (Average)</div>', unsafe_allow_html=True)
 if "avg_weekly_rainfall_mm" in df_all.columns:

@@ -1,5 +1,5 @@
 """
-pages/3_🎛️_What_If_Simulator.py  —  What-If Scenario Simulator
+pages/3_🎛️_Custom_Demand_Forecaster.py  —  Custom Demand Forecaster
 """
 import sys
 import pickle
@@ -23,7 +23,7 @@ RF_PATH = BASE_DIR / "models" / "rf_model.pkl"
 SCALER_PATH = BASE_DIR / "models" / "feature_scaler.pkl"
 
 st.set_page_config(
-    page_title="What-If Simulator | Tourist DSS",
+    page_title="Custom Demand Forecaster | Tourist DSS",
     page_icon="🎛️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -206,7 +206,7 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-render_sidebar(active_page="What-If Simulator")
+render_sidebar(active_page="Custom Demand Forecaster")
 
 # ── Load model ────────────────────────────────────────────────────
 @st.cache_resource
@@ -262,7 +262,7 @@ baseline = get_baseline()
 # PAGE HEADER
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 render_page_banner(
-    title="What-If Scenario Simulator",
+    title="Custom Demand Forecaster",
     subtitle="Model hypothetical scenarios and see AI-driven predictions for weekly tourist arrivals in Kandy.",
     icon="🎛️",
 )
@@ -282,7 +282,7 @@ if rf_model is None:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # HOW TO USE — User Instructions
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-with st.expander("📖  **How to Use This Simulator**  —  Click to expand", expanded=False):
+with st.expander("📖  **How to Use This Forecaster**  —  Click to expand", expanded=False):
     st.markdown("""
 <div class="guide-box">
         <div class="guide-title">🎯 Quick Start Guide</div>
@@ -292,7 +292,7 @@ with st.expander("📖  **How to Use This Simulator**  —  Click to expand", ex
         </div>
         <div class="guide-step">
             <div class="guide-step-num">2</div>
-            <div class="guide-step-text"><strong>Navigate the Tabs</strong> — The simulator utilizes three distinct tabs: 🕒 Timeline, 📍 Geopolitics, and 🌦️ Weather. Set your experimental parameters inside each tab.</div>
+            <div class="guide-step-text"><strong>Navigate the Tabs</strong> — The forecaster utilizes three distinct tabs: 🕒 Timeline, 📍 Geopolitics, and 🌦️ Weather. Set your experimental parameters inside each tab.</div>
         </div>
         <div class="guide-step">
             <div class="guide-step-num">3</div>
@@ -583,7 +583,7 @@ st.markdown("""
             padding:12px 18px; margin:4px 0 20px 0; display:flex; align-items:center; gap:10px;">
     <span style="font-size:1.15rem">⚠️</span>
     <span style="color:{theme['warning']}; font-family:'Inter',sans-serif; font-size:0.92rem; font-weight:600; line-height:1.4;">
-        Disclaimer: These numbers are simulated "What-If" projections for strategic planning. They do not represent guaranteed future outcomes.
+        Disclaimer: These numbers are custom, simulated projections for strategic planning. They do not represent guaranteed future outcomes.
     </span>
 </div>
 """, unsafe_allow_html=True)
