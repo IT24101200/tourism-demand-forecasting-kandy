@@ -449,12 +449,12 @@ st.markdown("<br>", unsafe_allow_html=True)
 col_gauge, col_bar = st.columns([1, 1.6])
 
 with col_gauge:
-    st.markdown('<div class="section-header">📈 Occupancy Pressure Gauge</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">🏨 Hotel Capacity Utilization</div>', unsafe_allow_html=True)
     gauge_color = "#4edea3" if occupancy_pct < 75 else ("#F59E0B" if occupancy_pct < 85 else "#ffb4ab")
     fig_gauge = go.Figure(go.Indicator(
         mode="gauge+number",
         value=occupancy_pct,
-        title={"text": "Hotel Occupancy Pressure", "font": {"color": "#dae2fd", "family": "Inter"}},
+        title={"text": "Forecasted Room Occupancy", "font": {"color": "#dae2fd", "family": "Inter"}},
         number={"suffix": "%", "font": {"color": "#dae2fd"}},
         gauge={
             "axis": {"range": [0, 100], "tickwidth": 1, "tickcolor": "rgba(62,72,79,0.15)"},
