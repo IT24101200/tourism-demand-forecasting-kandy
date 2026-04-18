@@ -116,6 +116,75 @@ with tab2:
     st.markdown("<div class='admin-card'><h4>AI Pipeline Override</h4>", unsafe_allow_html=True)
     st.markdown("Use this terminal to force an off-schedule re-training of the Machine Learning models. This will overwrite the `predictions_cache.csv` and broadcast new data to all users.")
     
+    # ── Pre-Training EDA Visualizations ──
+    st.markdown("---")
+    st.subheader("📊 Pre-Training Exploratory Data Analysis")
+    st.markdown("Analyze historical dataset patterns and feature correlations before initiating a re-train.")
+    
+    with st.expander("Explore Dataset Visualizations", expanded=False):
+        try:
+            import plotly.express as px
+            
+            df_hist = None
+            csv_path = Path(__file__).parent.parent / "kandy_festival_demand_NOMISSING.csv"
+            if csv_path.exists():
+                df_hist = pd.read_csv(csv_path, on_bad_lines='skip')
+                if "week_start" in df_hist.columns:
+                    df_hist["week_start"] = pd.to_datetime(df_hist["week_start"])
+            else:
+                from utils.db import fetch_kandy_weekly
+                df_hist = fetch_kandy_weekly()
+                if not df_hist.empty and "week_start" in df_hist.columns:
+                    df_hist["week_start"] = pd.to_datetime(df_hist["week_start"])
+                    
+            if df_hist is not None and not df_hist.empty:
+                # 1. Arrivals Over Time
+                st.markdown("**1. Historical Tourist Arrivals Trend**")
+                fig1 = px.line(df_hist, x="week_start", y="estimated_weekly_kandy_arrivals", 
+                               title="Weekly Tourist Arrivals Over Time",
+                               labels={"week_start": "Date", "estimated_weekly_kandy_arrivals": "Arrivals"})
+                fig1.update_layout(template="plotly_dark", plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
+                st.plotly_chart(fig1, use_container_width=True)
+                
+                # 2. Correlation Heatmap
+                st.markdown("**2. Feature Correlation Heatmap**")
+                cols_to_correlate = ["estimated_weekly_kandy_arrivals", "avg_weekly_rainfall_mm", "festival_intensity_score", "avg_temp_celsius", "is_school_holiday"]
+                existing_cols = [c for c in cols_to_correlate if c in df_hist.columns]
+                if len(existing_cols) > 1:
+                    corr = df_hist[existing_cols].corr()
+                    fig2 = px.imshow(corr, text_auto=True, color_continuous_scale="RdBu_r", 
+                                     title="Pearson Correlation with Target")
+                    fig2.update_layout(template="plotly_dark", plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
+                    st.plotly_chart(fig2, use_container_width=True)
+                
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.markdown("**3. Target Distribution**")
+                    fig3 = px.histogram(df_hist, x="estimated_weekly_kandy_arrivals", nbins=30, 
+                                        title="Distribution of Arrivals", 
+                                        color_discrete_sequence=["#39b8fd"])
+                    fig3.update_layout(template="plotly_dark", plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
+                    st.plotly_chart(fig3, use_container_width=True)
+                
+                with c2:
+                    if "avg_weekly_rainfall_mm" in df_hist.columns and "is_monsoon_week" in df_hist.columns:
+                        st.markdown("**4. Weather Impact Analysis**")
+                        df_hist["monsoon_status"] = df_hist["is_monsoon_week"].apply(lambda x: "Monsoon" if int(x) == 1 else "Normal")
+                        fig4 = px.scatter(df_hist, x="avg_weekly_rainfall_mm", y="estimated_weekly_kandy_arrivals", 
+                                          title="Rainfall Sensitivity on Arrivals",
+                                          color="monsoon_status",
+                                          color_discrete_map={"Monsoon": "#ff4b4b", "Normal": "#39b8fd"},
+                                          labels={"avg_weekly_rainfall_mm": "Weekly Rainfall (mm)", "estimated_weekly_kandy_arrivals": "Arrivals"},
+                                          opacity=0.8)
+                        fig4.update_layout(template="plotly_dark", plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
+                        st.plotly_chart(fig4, use_container_width=True)
+            else:
+                st.warning("⚠️ Could not load historical data for EDA.")
+        except Exception as e:
+            st.error(f"Failed to generate EDA plots: {e}")
+
+    st.markdown("---")
+    
     if st.button("🚀 Trigger Model Retraining (52 Weeks)", use_container_width=True):
         st.info("Initiating `train_models.py` subprocess — this takes several minutes. Keep the page open.")
         try:

@@ -421,12 +421,11 @@ def render_metric_card(title, value, delta=None, icon="", positive_trend=False):
     """, unsafe_allow_html=True)
 
 
-@st.cache_data(ttl=3600)
 def get_current_week_prediction():
     """
     Returns the predicted arrivals for the current week.
     Priority: Supabase predictions table → local predictions_cache.csv
-    Cache TTL: 1 hour (auto-refreshes after retrain pushes new data)
+    Always fetches live to prevent stale values after retrain.
     """
     import pandas as pd
     import datetime
@@ -441,12 +440,25 @@ def get_current_week_prediction():
         if not df.empty:
             df["week_start"] = pd.to_datetime(df["week_start"])
             df["week_end"]   = pd.to_datetime(df["week_end"])
-            df = df[df["model_name"] == "xgboost"].sort_values("week_start")
-            current = df[(df["week_start"] <= today) & (df["week_end"] >= today)]
+            
+            # Prefer LSTM if user configured it, else fallback to xgboost
+            import streamlit as st
+            model_pref = st.session_state.get("live_model_choice", "xgboost").lower()
+            if model_pref == "both":
+                model_pref = "xgboost" # Default primary
+            
+            model_df = df[df["model_name"] == model_pref].sort_values("week_start")
+            
+            # If the preferred model has no data, fallback to any available
+            if model_df.empty:
+                 model_df = df.sort_values("week_start")
+                 
+            current = model_df[(model_df["week_start"] <= today) & (model_df["week_end"] >= today)]
             if not current.empty:
                 return int(current.iloc[0]["predicted_arrivals"])
+            
             # fallback: closest upcoming week
-            future = df[df["week_start"] >= today]
+            future = model_df[model_df["week_start"] >= today]
             if not future.empty:
                 return int(future.iloc[0]["predicted_arrivals"])
     except Exception:
@@ -459,11 +471,18 @@ def get_current_week_prediction():
             df = pd.read_csv(cache_path)
             df["week_start"] = pd.to_datetime(df["week_start"])
             df["week_end"]   = pd.to_datetime(df["week_end"])
-            df = df[df["model_name"] == "xgboost"]
-            current = df[(df["week_start"] <= today) & (df["week_end"] >= today)]
+            
+            import streamlit as st
+            model_pref = st.session_state.get("live_model_choice", "xgboost").lower()
+            if model_pref == "both": model_pref = "xgboost"
+            
+            model_df = df[df["model_name"] == model_pref].sort_values("week_start")
+            if model_df.empty: model_df = df.sort_values("week_start")
+            
+            current = model_df[(model_df["week_start"] <= today) & (model_df["week_end"] >= today)]
             if not current.empty:
                 return int(current.iloc[0]["predicted_arrivals"])
-            future = df[df["week_start"] >= today]
+            future = model_df[model_df["week_start"] >= today]
             if not future.empty:
                 return int(future.iloc[0]["predicted_arrivals"])
     except Exception:
@@ -472,19 +491,17 @@ def get_current_week_prediction():
     return None
 
 
-@st.cache_data(ttl=3600)
 def get_next_week_prediction():
     """
     Returns the predicted arrivals for next week.
     Priority: Supabase predictions table → local predictions_cache.csv
-    Cache TTL: 1 hour (auto-refreshes after retrain pushes new data)
+    Always fetches live to prevent stale values after retrain.
     """
     import pandas as pd
     import datetime
     from pathlib import Path
 
-    today      = pd.Timestamp(datetime.date.today())
-    next_week  = today + pd.Timedelta(days=7)
+    today = pd.Timestamp(datetime.date.today())
 
     # 1. Try Supabase first
     try:
@@ -492,8 +509,15 @@ def get_next_week_prediction():
         df = fetch_predictions()
         if not df.empty:
             df["week_start"] = pd.to_datetime(df["week_start"])
-            df = df[df["model_name"] == "xgboost"].sort_values("week_start")
-            future = df[df["week_start"] >= next_week]
+            
+            import streamlit as st
+            model_pref = st.session_state.get("live_model_choice", "xgboost").lower()
+            if model_pref == "both": model_pref = "xgboost"
+            
+            model_df = df[df["model_name"] == model_pref].sort_values("week_start")
+            if model_df.empty: model_df = df.sort_values("week_start")
+            
+            future = model_df[model_df["week_start"] > today]
             if not future.empty:
                 return int(future.iloc[0]["predicted_arrivals"])
     except Exception:
@@ -505,8 +529,15 @@ def get_next_week_prediction():
         if cache_path.exists():
             df = pd.read_csv(cache_path)
             df["week_start"] = pd.to_datetime(df["week_start"])
-            df = df[df["model_name"] == "xgboost"].sort_values(by="week_start")
-            future = df[df["week_start"] >= next_week]
+            
+            import streamlit as st
+            model_pref = st.session_state.get("live_model_choice", "xgboost").lower()
+            if model_pref == "both": model_pref = "xgboost"
+            
+            model_df = df[df["model_name"] == model_pref].sort_values(by="week_start")
+            if model_df.empty: model_df = df.sort_values("week_start")
+            
+            future = model_df[model_df["week_start"] > today]
             if not future.empty:
                 return int(future.iloc[0]["predicted_arrivals"])
     except Exception:

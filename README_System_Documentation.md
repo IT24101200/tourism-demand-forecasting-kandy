@@ -153,10 +153,10 @@ The **Tourist Demand Forecasting & Decision Support System (DSS)** is an AI-powe
 | Attribute | Detail |
 |-----------|--------|
 | **Description** | Elevated admin panel for access control and MLOps |
-| **Functionality** | Access Management tab (user list, role promotion/demotion, account deletion), MLOps Engine tab (trigger model retraining via subprocess, display training summary cards, dataset upload), System Logs tab (view/clear training logs) |
+| **Functionality** | Access Management tab (user list, role promotion/demotion, account deletion), MLOps Engine tab (Interactive Pre-Training Exploratory Data Analysis (EDA) dashboard, trigger model retraining via subprocess, display training summary cards, dataset upload), System Logs tab (view/clear training logs) |
 | **Backend Interaction** | Uses `get_service_client()` with service-role key for full table access; runs `train_models.py` as subprocess |
-| **AI Connection** | Triggers the complete ML training pipeline (`train_models.py`) which retrains XGBoost and LSTM and pushes new predictions |
-| **Data Flow** | Admin clicks retrain → `subprocess.run(train_models.py)` → Models retrained → Predictions pushed to Supabase → Console output parsed and displayed |
+| **AI Connection** | Surfaces live dataset analytics (correlations, distributions) prior to triggering the complete ML training pipeline (`train_models.py`) which retrains XGBoost and LSTM and pushes new predictions |
+| **Data Flow** | Admin clicks retrain → `subprocess.run(train_models.py)` → Models retrained → Visualizations generated → Predictions pushed to Supabase → Console output parsed and displayed |
 | **APIs Used** | `get_service_client()` → `user_profiles`, `supabase.auth.admin`, subprocess execution |
 
 ---
@@ -265,6 +265,28 @@ For future predictions, the LSTM uses a sliding window approach:
 | Climate Impact Forecaster | XGBoost | Weather sensitivity analysis |
 | Festival Forecaster | Both | Festival-period demand projections |
 | Report Generator | Both | Weekly forecast cards and AI model comparison |
+
+### 3.6 Automated Exploratory Data Analysis (EDA) & Model Visualization
+
+| Attribute | Detail |
+|-----------|--------|
+| **Type** | Automated Static & Interactive Data Visualization |
+| **Library** | `plotly.express`, `matplotlib`, `seaborn` |
+| **Purpose** | Validate raw data distributions, seasonal skewness, and ML decision-making factors. |
+| **Locations** | UI (`pages/9_⚙️_System_Admin.py`), Offline (`models/eda_visualizations/`) |
+
+**Pre-Training EDA (Interactive UI):**
+Available in the System Admin portal directly before triggering the ML pipeline. Provides immediate sanity-checks on feature data:
+1. **Trend Analysis**: Plotly line chart mapped to historical `estimated_weekly_kandy_arrivals`.
+2. **Feature Correlation**: Matrix computing Pearson correlation coefficients between macro-variables (`rainfall`, `temperature`, `festivals`) and the target variable.
+3. **Target Distribution**: Histogram highlighting historical variance ranges.
+4. **Categorical Impact**: Box plots extracting deviations (e.g. baseline demand vs school holiday demand).
+
+**Post-Training Report Generation (Offline):**
+During `train_models.py` execution, the script mathematically generates and statically saves analytical `.png` blueprints using the `matplotlib.use('Agg')` headless framework:
+- `01_arrivals_trend.png`, `02_correlation_heatmap.png`, `03_target_distribution.png`
+- `04_feature_importance.png`: Maps `rf.feature_importances_` to yield the top 15 highest-weighted determinants of Kandy Tourism driven by the XGBoost algorithm.
+- `05_prediction_accuracy.png`: Test-split validation array plotted as an Actual vs. Predicted scatter to verify R² performance metrics visually.
 
 ---
 

@@ -449,21 +449,81 @@ with tab_geom:
 with tab_weather:
     # -- Weather Conditions --
     with st.container(border=True):
-        st.markdown("""
+        st.markdown(f"""
         <div class="panel-header">🌦️ Meteorological Conditions</div>
-        <div class="panel-desc">Set weather parameters. Rainfall above 150mm will automatically trigger monsoon mode.</div>
+        <div class="panel-desc">Set weather parameters for the Kandy District. Rainfall above 150 mm/week will automatically trigger monsoon mode.</div>
         """, unsafe_allow_html=True)
 
         w_col1, w_col2, w_col3 = st.columns(3)
         with w_col1:
-            rainfall_str = st.number_input("🌧️ Rainfall (mm)", min_value=0.0, max_value=1500.0, value=float(def_rain), step=10.0, help="Above 150mm is heavy monsoon.")
+            rainfall_str = st.slider(
+                "🌧️ Avg Weekly Rainfall (mm)", min_value=0.0, max_value=500.0,
+                value=float(def_rain), step=5.0,
+                help="Kandy's weekly rainfall typically ranges 50–290 mm depending on season. Max recorded ≈ 450 mm/week."
+            )
+            st.caption("Typical for Kandy: **50–290** mm/week")
+            # Live validation for rainfall
+            if rainfall_str > 450:
+                st.error("🔴 Historically unprecedented — Kandy's recorded maximum weekly rainfall is ~450 mm.")
+            elif rainfall_str > 300:
+                st.warning("🟡 Extreme rainfall — exceeds the 95th percentile for Kandy.")
+            elif rainfall_str > 150:
+                st.info("🌧️ Heavy monsoon-level rainfall (>150 mm).")
+
         with w_col2:
-            temp_str = st.number_input("🌡️ Temp (°C)", min_value=15.0, max_value=40.0, value=float(def_temp), step=0.5)
+            temp_str = st.slider(
+                "🌡️ Avg Temperature (°C)", min_value=18.0, max_value=35.0,
+                value=float(def_temp), step=0.5,
+                help="Kandy's average temperature ranges 25–28 °C year-round. Extremes: 19 °C (cold nights) to 33 °C (peak heat)."
+            )
+            st.caption("Typical for Kandy: **25–28** °C")
+            # Live validation for temperature
+            if temp_str < 20.0:
+                st.warning("🟡 Below 20 °C — outside Kandy's typical range. Predictions may be less reliable.")
+            elif temp_str > 32.0:
+                st.warning("🟡 Above 32 °C — unusually hot for Kandy. Predictions may be less reliable.")
+
         with w_col3:
-            humidity_str = st.number_input("💧 Humidity (%)", min_value=0.0, max_value=100.0, value=float(def_hum), step=1.0)
-        
+            humidity_str = st.slider(
+                "💧 Avg Humidity (%)", min_value=40.0, max_value=100.0,
+                value=float(def_hum), step=1.0,
+                help="Kandy's humidity is consistently high (74–82 %). Values below 55 % are extremely rare."
+            )
+            st.caption("Typical for Kandy: **74–82** %")
+            # Live validation for humidity
+            if humidity_str < 55.0:
+                st.warning("🟡 Kandy's humidity rarely drops below 55 %. This value is atypical.")
+
         is_monsoon = st.toggle("Severe Monsoon Active", value=bool(rainfall_str > 150),
-            help="Automatically enabled when rainfall exceeds 150mm. Can be manually toggled.")
+            help="Automatically enabled when rainfall exceeds 150 mm. Can be manually toggled.")
+
+    # -- Weather Impact Summary --
+    with st.container(border=True):
+        # Determine weather scenario label
+        if rainfall_str > 250 and humidity_str > 80:
+            _w_icon, _w_label, _w_desc = "⛈️", "Severe Monsoon", "Heavy rain and high humidity will significantly suppress tourist arrivals."
+            _w_color = theme['danger']
+        elif rainfall_str > 150:
+            _w_icon, _w_label, _w_desc = "🌧️", "Monsoon Conditions", "Elevated rainfall will moderately reduce tourism activity."
+            _w_color = theme['warning']
+        elif rainfall_str < 60 and 23 <= temp_str <= 29:
+            _w_icon, _w_label, _w_desc = "☀️", "Ideal Conditions", "Dry weather with pleasant temperatures — optimal for tourism."
+            _w_color = theme['accent2']
+        else:
+            _w_icon, _w_label, _w_desc = "☁️", "Moderate Conditions", "Mild rainfall with comfortable temperatures — average tourism impact."
+            _w_color = theme['accent']
+
+        st.markdown(f"""
+        <div style="display:flex; align-items:center; gap:14px;">
+            <span style="font-size:2rem;">{_w_icon}</span>
+            <div>
+                <div style="color:{_w_color}; font-family:'Manrope',sans-serif; font-weight:800; font-size:1.05rem;">{_w_label}</div>
+                <div style="color:{theme['text_muted']}; font-family:'Inter',sans-serif; font-size:0.9rem; margin-top:2px;">{_w_desc}</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+
 
 
 # ── Compute festival scores ──

@@ -28,6 +28,11 @@ import pandas as pd
 from pathlib import Path
 from datetime import datetime, timedelta
 
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 warnings.filterwarnings("ignore")
 
 # ── Paths ─────────────────────────────────────────────────────
@@ -38,6 +43,9 @@ MODELS_DIR.mkdir(exist_ok=True)
 RF_PATH   = MODELS_DIR / "rf_model.pkl"
 LSTM_PATH = MODELS_DIR / "lstm_model.keras"
 SCALER_PATH = MODELS_DIR / "feature_scaler.pkl"
+
+EDA_DIR = MODELS_DIR / "eda_visualizations"
+EDA_DIR.mkdir(exist_ok=True)
 
 # ── Supabase ──────────────────────────────────────────────────
 sys.path.insert(0, str(BASE_DIR))
@@ -64,6 +72,75 @@ from tensorflow.keras.regularizers import l2
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from tensorflow.keras.optimizers import Adam
 
+
+# ══════════════════════════════════════════════════════════════
+#  EDA FUNCTIONS
+# ══════════════════════════════════════════════════════════════
+def generate_dataset_eda(df: pd.DataFrame):
+    print("\n📊  Generating Pre-Training EDA visualizations...")
+    try:
+        if "week_start" in df.columns and "estimated_weekly_kandy_arrivals" in df.columns:
+            plt.figure(figsize=(10, 5))
+            plt.plot(pd.to_datetime(df["week_start"]), df["estimated_weekly_kandy_arrivals"], color='teal')
+            plt.title("Historical Tourist Arrivals Trend")
+            plt.xlabel("Date")
+            plt.ylabel("Arrivals")
+            plt.grid(True, alpha=0.3)
+            plt.tight_layout()
+            plt.savefig(EDA_DIR / "01_arrivals_trend.png")
+            plt.close()
+            
+        TARGET = "estimated_weekly_kandy_arrivals"
+        num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+        if len(num_cols) > 1 and TARGET in num_cols:
+            corr = df[num_cols].corr()
+            top_features = corr[TARGET].abs().sort_values(ascending=False).head(10).index
+            plt.figure(figsize=(10, 8))
+            sns.heatmap(df[top_features].corr(), annot=True, cmap="RdBu_r", fmt=".2f")
+            plt.title("Top Feature Correlations with Target")
+            plt.tight_layout()
+            plt.savefig(EDA_DIR / "02_correlation_heatmap.png")
+            plt.close()
+            
+        if TARGET in df.columns:
+            plt.figure(figsize=(8, 5))
+            sns.histplot(df[TARGET], kde=True, color="skyblue")
+            plt.title("Distribution of Tourist Arrivals")
+            plt.tight_layout()
+            plt.savefig(EDA_DIR / "03_target_distribution.png")
+            plt.close()
+    except Exception as e:
+        print(f"   ⚠️  EDA generation failed: {e}")
+
+def generate_model_insights(model, X_test, y_test, y_pred, feature_list):
+    print("\n📊  Generating Post-Training Model Insights...")
+    try:
+        if hasattr(model, "feature_importances_"):
+            importances = model.feature_importances_
+            idx = np.argsort(importances)[-15:] 
+            
+            plt.figure(figsize=(10, 6))
+            plt.barh(range(len(idx)), importances[idx], align='center', color='teal')
+            plt.yticks(range(len(idx)), [feature_list[i] for i in idx])
+            plt.title("Top Feature Importances (XGBoost)")
+            plt.xlabel("Relative Importance")
+            plt.tight_layout()
+            plt.savefig(EDA_DIR / "04_feature_importance.png")
+            plt.close()
+            
+        plt.figure(figsize=(8, 8))
+        plt.scatter(y_test, y_pred, alpha=0.5, color='coral')
+        min_val = min(y_test.min(), y_pred.min())
+        max_val = max(y_test.max(), y_pred.max())
+        plt.plot([min_val, max_val], [min_val, max_val], 'k--', lw=2)
+        plt.title("Actual vs Predicted Arrivals")
+        plt.xlabel("Actual Arrivals")
+        plt.ylabel("Predicted Arrivals")
+        plt.tight_layout()
+        plt.savefig(EDA_DIR / "05_prediction_accuracy.png")
+        plt.close()
+    except Exception as e:
+        print(f"   ⚠️  Model Insight generation failed: {e}")
 
 # ══════════════════════════════════════════════════════════════
 #  STEP 1 — Load data
@@ -485,6 +562,8 @@ def main():
     df = preprocess(df_raw)
     feat_cols = get_feature_list(df)
     print(f"   Features: {len(feat_cols)} | Rows: {len(df)}")
+    
+    generate_dataset_eda(df)
 
     X = df[feat_cols].values
     y = df[TARGET_COL].values
@@ -510,6 +589,8 @@ def main():
 
     # ── 4A. Random Forest ──────────────────────────────────────
     rf_model, rf_metrics = train_random_forest(X_train, y_train, X_test, y_test)
+    y_pred_rf = rf_model.predict(X_test)
+    generate_model_insights(rf_model, X_test, y_test, y_pred_rf, feat_cols)
 
     # ── 4B. LSTM ───────────────────────────────────────────────
     lstm_model, lstm_metrics = train_lstm(X_scaled_all, y_scaled, split_idx, len(feat_cols), y_scaler)
