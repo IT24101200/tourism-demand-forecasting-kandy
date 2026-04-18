@@ -1,0 +1,342 @@
+--- NAMES ---
+__doc__
+sys
+pickle
+math
+pathlib
+Path
+path
+insert
+str
+__file__
+parent
+numpy
+np
+pandas
+pd
+streamlit
+st
+plotly.graph_objects
+graph_objects
+go
+utils.sidebar
+render_sidebar
+utils.auth
+require_auth
+utils.theme
+apply_plotly_theme
+apply_custom_theme
+BASE_DIR
+RF_PATH
+SCALER_PATH
+set_page_config
+markdown
+cache_resource
+load_model
+rf_model
+scaler
+feat_cols
+cache_data
+get_baseline
+baseline
+image
+warning
+stop
+columns
+col_l
+col_r
+toggle
+is_esala
+is_esala_prep
+is_poson
+is_vesak
+is_stny
+is_xmas
+is_poya
+is_school_hol
+int
+any
+is_any_fest
+is_covid
+is_easter
+is_econ
+is_normal
+number_input
+rainfall_mm
+temp_c
+humidity_pct
+safe_rain
+bool
+is_monsoon
+slider
+week_of_year
+month
+year
+ceil
+quarter
+festival_scores
+active_scores
+max
+intensity
+multiplier
+Timestamp
+days
+days_to_esala
+Exception
+inputs_valid
+info
+button
+lag_val
+feature_dict
+array
+float
+input_vec
+values
+round
+predict
+predicted
+e
+error
+risk
+risk_color
+delta_vs_mean
+delta_pct
+res_col
+gauge_col
+delta_sign
+delta_col
+label
+val
+max_gauge
+Figure
+Indicator
+fig_gauge
+update_layout
+dict
+plotly_chart
+comp_labels
+comp_values
+comp_colors
+Bar
+fig_bar
+recs
+append
+abs
+min
+len
+rcols
+enumerate
+i
+icon
+title
+body
+caption
+--- CONSTS ---
+'\npages/3_🎛️_What_If_Simulator.py  —  What-If Scenario Simulator\n'
+'models'
+'rf_model.pkl'
+'feature_scaler.pkl'
+'What-If Simulator | Tourist DSS'
+'🎛️'
+'wide'
+'expanded'
+'\n<style>\n@import url(\'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap\');\nhtml, body, [class*="css"] { font-family: \'Inter\', sans-serif; }\n.main { background: #0a0e1a; }\nsection[data-testid="stSidebar"] {\n    background: linear-gradient(180deg, #0d1528 0%, #111827 100%);\n    border-right: 1px solid #1e293b;\n}\n.result-card {\n    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);\n    border: 1px solid #334155; border-radius: 20px; padding: 32px 36px;\n    text-align: center;\n}\n.result-label { color: #94a3b8; font-size: 0.82rem; font-weight: 600;\n                letter-spacing: 0.08em; text-transform: uppercase; }\n.result-value { font-size: 3.6rem; font-weight: 800; margin: 6px 0; }\n.section-header {\n    color: #e2e8f0; font-size: 1.25rem; font-weight: 700;\n    margin: 24px 0 14px 0; padding-bottom: 6px;\n    border-bottom: 2px solid #f472b6; display: inline-block;\n}\n.info-card {\n    background: #0f172a; border: 1px solid #1e293b;\n    border-radius: 12px; padding: 14px 18px; margin: 6px 0;\n}\n</style>\n'
+'What-If Simulator'
+  --- NAMES ---
+  RF_PATH
+  exists
+  open
+  pickle
+  load
+  SCALER_PATH
+  --- CONSTS ---
+  'rb'
+  --- NAMES ---
+  BASE_DIR
+  pd
+  read_csv
+  columns
+  to_numeric
+  fillna
+  astype
+  int
+  any
+  mean
+  median
+  max
+  min
+  --- CONSTS ---
+  'kandy_festival_demand_NOMISSING.csv'
+  'skip'
+    --- NAMES ---
+    strip
+    lower
+    replace
+    --- CONSTS ---
+    ' '
+    '_'
+  'estimated_weekly_kandy_arrivals'
+  'coerce'
+  'is_esala_perahera'
+'https://images.unsplash.com/photo-1506461883276-594a12b11ac3?q=80&w=1600&auto=format&fit=crop'
+'\n<div style="padding:10px 0px 20px 0px;">\n  <div style="font-size:2.2rem;font-weight:800;color:#0A2540;">\n    🎛️ What-If Scenario Simulator\n  </div>\n  <div style="color:#1E293B;font-size:1.05rem;font-weight:500;">\n    Adjust the sliders and see the AI model\'s real-time prediction for weekly Kandy arrivals.\n  </div>\n</div>\n'
+'\n    ⚠️ **Model not found.**\n    Please run the training pipeline first:\n    ```\n    python train_models.py\n    ```\n    Then refresh this page.\n    '
+'<div class="section-header">⚙️ Scenario Control Panel</div>'
+'large'
+'#### 🎭 Festival & Events'
+'Esala Perahera (Aug)'
+'Esala Preparation Week (Jul)'
+'Poson Perahera (Jun)'
+'Vesak Week (May)'
+'Sinhala/Tamil New Year (Apr)'
+'Christmas / New Year (Dec–Jan)'
+'Poya Day Week'
+'School Holiday'
+'#### ⚠️ Crisis Events'
+'COVID-19 Lockdown Period'
+'Easter Attack Period'
+'Economic Crisis Period'
+'#### 🌦️ Weather Conditions'
+'Average Weekly Rainfall (mm)'
+'Dry season ~50 mm · Monsoon ~200–350 mm'
+'Average Temperature (°C)'
+'Average Humidity (%)'
+'Monsoon Week'
+'#### 🗓️ Time Context'
+'Week of Year'
+'Week 1=Jan · Week 30=late Jul · Week 33=Aug (Esala)'
+'Month'
+'1=Jan … 12=Dec'
+'Year'
+  --- NAMES ---
+  --- CONSTS ---
+'-08-10'
+'-'
+'02d'
+'-15'
+'<br>'
+'ℹ️ Please enter values for Rainfall, Temperature, and Humidity above to unlock the simulation.'
+'Run Simulation'
+'primary'
+'mean'
+'week_of_year'
+'month'
+'quarter'
+'year'
+'festival_intensity_score'
+'festival_demand_multiplier'
+'is_esala_perahera'
+'is_esala_preparation'
+'is_esala_post_festival'
+'is_august_buildup'
+'is_poson_perahera'
+'is_vesak'
+'is_sinhala_tamil_new_year'
+'is_christmas_new_year'
+'is_deepavali'
+'is_thai_pongal'
+'is_monthly_poya_week'
+'poya_days_away'
+'is_school_holiday'
+'is_any_festival'
+'days_until_next_esala'
+'avg_weekly_rainfall_mm'
+'avg_temp_celsius'
+'avg_humidity_pct'
+'is_monsoon_week'
+'is_covid_period'
+'is_easter_attack_period'
+'is_economic_crisis'
+'is_normal_operation'
+'arrivals_lag_1'
+'arrivals_lag_2'
+'arrivals_lag_4'
+'arrivals_lag_8'
+'arrivals_lag_13'
+  --- NAMES ---
+  feature_dict
+  get
+  --- CONSTS ---
+  --- NAMES ---
+  --- CONSTS ---
+'Prediction engine is currently unavailable. Please try again later.'
+'<div class="section-header">🔮 AI Prediction Result</div>'
+'+'
+''
+'#34d399'
+'#f87171'
+'\n    <div class="result-card">\n        <div class="result-label">Predicted Weekly Arrivals</div>\n        <div class="result-value" style="color:'
+';">'
+','
+'</div>\n        <div style="color:'
+';font-size:1.1rem;font-weight:700;margin-bottom:12px;">\n            '
+' ('
+'.1f'
+'% vs avg)\n        </div>\n        <div style="background:'
+'22;color:'
+';border:1px solid '
+';\n                    border-radius:999px;padding:4px 18px;font-size:0.85rem;font-weight:700;\n                    display:inline-block;">\n            '
+'\n        </div>\n    </div>\n    '
+'##### 📊 Scenario Breakdown'
+'🌧️ Rainfall'
+' mm/week'
+'🌡️ Temperature'
+'°C'
+'💧 Humidity'
+'%'
+'🎭 Festival Intensity'
+'/10'
+'📈 Demand Multiplier'
+'.2f'
+'×'
+'⚠️ Crisis Active'
+'Yes'
+'No'
+'☔ Monsoon Week'
+'<div class="info-card" style="display:flex;justify-content:space-between;"><span style="color:#94a3b8;">'
+'</span><span style="color:#e2e8f0;font-weight:600;">'
+'</span></div>'
+'max'
+'gauge+number+delta'
+',.0f'
+'color'
+'#f8fafc'
+'Inter'
+'#64748b'
+'#1e293b'
+'#334155'
+'#1a0a0a'
+'#0a1a10'
+'#0a1a1a'
+'#fde047'
+'Weekly Arrivals<br><sub>Yellow line = historical average</sub>'
+'#94a3b8'
+'#0a0e1a'
+'min'
+'peak_esala'
+  --- NAMES ---
+  --- CONSTS ---
+  ','
+'outside'
+'#e2e8f0'
+'%{x}: %{y:,.0f} arrivals<extra></extra>'
+'<div class="section-header">💡 AI Recommendations</div>'
+'🌧️'
+'Monsoon demand suppression'
+'Expected '
+' arrivals — '
+'.0f'
+'% below average. Consider targeted promotions (spa deals, indoor attractions) to offset the seasonal dip.'
+'📈'
+'High demand week'
+'Projected '
+' arrivals. Increase staffing by ~20–30%, coordinate with local restaurants + transport, and activate dynamic pricing strategies.'
+'✅'
+'Normal operating week'
+' arrivals — within ±'
+'% of the historical average. Standard operations recommended.'
+'\n        <div style="background:#0f172a;border:1px solid #1e293b;border-radius:14px;\n                    padding:20px;height:100%;">\n            <div style="font-size:1.8rem">'
+'</div>\n            <div style="color:#e2e8f0;font-weight:700;margin:8px 0 4px;">'
+'</div>\n            <div style="color:#94a3b8;font-size:0.85rem;line-height:1.5;">'
+'</div>\n        </div>'
+'Predictions use the Random Forest model trained on 574 weeks of historical data · DSS v1.0.0'

@@ -1,0 +1,110 @@
+--- NAMES ---
+streamlit
+st
+utils.auth
+require_auth
+utils.db
+get_client
+utils.theme
+apply_custom_theme
+set_page_config
+image
+markdown
+session_state
+get
+user
+profile
+warning
+stop
+tabs
+tab1
+tab2
+columns
+col_info
+col_edit
+email
+form
+text_input
+new_name
+new_hotel
+form_submit_button
+submit
+sb
+table
+update
+eq
+id
+execute
+resp
+data
+success
+rerun
+Exception
+e
+error
+col_sec1
+col_sec2
+new_pass
+confirm_pass
+submit_pass
+len
+auth
+update_user
+res
+str
+info
+divider
+col_btn
+_
+button
+sign_out
+--- CONSTS ---
+'Profile | Tourist DSS'
+'👤'
+'wide'
+'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=1600&auto=format&fit=crop'
+'\n<div style="padding:10px 0px 20px 0px;">\n  <div style="font-size:2.2rem;font-weight:800;color:#0A2540;">\n    👤 Account Settings\n  </div>\n  <div style="color:#1E293B;font-size:1.05rem;font-weight:500;">\n        Manage your personal information, security preferences, and system access.\n  </div>\n</div>\n'
+'user'
+'user_profile'
+'Could not load profile details. Please try logging out and logging back in.'
+'\n<style>\n.profile-card {\n    background: rgba(255, 255, 255, 0.95);\n    padding: 2rem;\n    border-radius: 12px;\n    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);\n    border: 1px solid rgba(0,0,0,0.05);\n    border-top: 4px solid var(--tropical-green);\n    margin-bottom: 2rem;\n}\n.profile-stat {\n    margin-bottom: 1.25rem;\n}\n.profile-label {\n    font-size: 0.85rem;\n    color: #64748b;\n    font-weight: 600;\n    text-transform: uppercase;\n    letter-spacing: 0.05em;\n    margin-bottom: 0.3rem;\n}\n.profile-value {\n    font-size: 1.15rem;\n    color: #0A2540;\n    font-weight: 700;\n}\n.stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {\n    font-size: 1.1rem;\n    font-weight: 600;\n}\n</style>\n'
+'👤 Profile Information'
+'🔐 Security Settings'
+'<br>'
+'large'
+'#### Your Credentials'
+'\n        <div class="profile-card">\n            <div class="profile-stat">\n                <div class="profile-label">Email Address</div>\n                <div class="profile-value">'
+'</div>\n            </div>\n            <div class="profile-stat">\n                <div class="profile-label">Full Name</div>\n                <div class="profile-value">'
+'full_name'
+'N/A'
+'</div>\n            </div>\n            <div class="profile-stat">\n                <div class="profile-label">System Role</div>\n                <div class="profile-value">'
+'role'
+'</div>\n            </div>\n            <div class="profile-stat">\n                <div class="profile-label">Organization / Hotel</div>\n                <div class="profile-value">'
+'hotel_name'
+'</div>\n            </div>\n        </div>\n        '
+'#### Update Information'
+'Keep your public profile up to date for reports and logging.'
+'update_profile_form'
+'Full Name'
+''
+'Organization / Hotel Name'
+'Save Changes'
+'primary'
+'user_profiles'
+'id'
+'✅ Profile updated successfully!'
+'Failed to update profile: '
+'#### Change Password'
+'Ensure your account is using a long, random password to stay secure.'
+'change_password_form'
+'New Password'
+'password'
+'Confirm New Password'
+'Update Password'
+'❌ Password must be at least 8 characters long.'
+'❌ Passwords do not match. Please try again.'
+'✅ Password updated successfully! Next time you log in, please use the new password.'
+'Failed to update password: '
+'#### Security Recommendations'
+'\n        **Best Practices:**\n        * Use at least 12 characters\n        * Mix uppercase, lowercase, numbers, and symbols\n        * Do not reuse passwords from other sites\n        * Do not share your login credentials with colleagues\n        '
+'Logout of Session'

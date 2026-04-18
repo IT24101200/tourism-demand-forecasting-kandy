@@ -1,0 +1,269 @@
+--- NAMES ---
+pathlib
+Path
+datetime
+pandas
+pd
+streamlit
+st
+plotly.graph_objects
+graph_objects
+go
+plotly.express
+express
+px
+utils.sidebar
+render_sidebar
+utils.auth
+require_auth
+utils.theme
+apply_plotly_theme
+set_page_config
+apply_custom_theme
+markdown
+_controls
+sidebar
+slider
+HOTEL_CAPACITY
+number_input
+OCC_PER_ROOM
+STAFF_RATIO
+VAN_RATIO
+divider
+date
+today
+timedelta
+next_week_start
+strftime
+next_week_str
+next_week_label
+__file__
+parent
+BASE_DIR
+json
+cache_data
+load_festival
+df_all
+empty
+info
+stop
+sort_values
+tail
+recent_and_future
+dt
+tolist
+w_options
+_best_idx
+default_idx
+selectbox
+sel_week_str
+iloc
+sel_row
+int
+arrivals
+festival
+rain
+to_datetime
+sel_date_label
+image
+max
+round
+staff_needed
+transport_units
+rooms_needed
+min
+occupancy_pct
+columns
+c1
+c2
+c3
+c4
+cards
+col
+img_url
+val
+label
+delta
+delta_cls
+error
+warning
+replace
+col_gauge
+col_bar
+gauge_color
+Figure
+Indicator
+fig_gauge
+update_layout
+dict
+plotly_chart
+head
+copy
+last12
+astype
+fig_bar
+add_trace
+Bar
+fwd
+show_cols
+disp
+rename
+dataframe
+--- CONSTS ---
+'Resource Planner | Kandy Tourism DSS'
+'🏨'
+'wide'
+'\n<style>\n@import url(\'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap\');\n\nhtml, body, [class*="css"] { font-family: \'Inter\', sans-serif; }\n\n.kpi-card {\n    background: white;\n    border: 1px solid rgba(0,0,0,0.05);\n    border-radius: 12px;\n    padding: 22px 20px;\n    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);\n    transition: box-shadow .2s, transform .2s;\n    display: flex;\n    align-items: center;\n    gap: 16px;\n}\n.kpi-card:hover { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); transform: translateY(-2px); }\n.kpi-thumb { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; }\n.kpi-content { text-align: left; }\n.kpi-value { font-size: 1.8rem; font-weight: 800; color: #0A2540; line-height: 1.1; }\n.kpi-label { color: #64748b; font-size: .78rem; font-weight: 600;\n             text-transform: uppercase; letter-spacing: .08em; margin-bottom: 2px;}\n.kpi-delta { font-size: .8rem; margin-top: 4px; font-weight: 500;}\n.delta-up { color: #2E8B57; }\n.delta-down { color: #EF4444; }\n\n.section-header {\n    color: #1E293B; font-size: .9rem; font-weight: 700;\n    letter-spacing: .12em; text-transform: uppercase;\n    margin: 24px 0 12px; padding-bottom: 6px;\n    border-bottom: 2px solid var(--tropical-green);\n}\n</style>\n'
+  --- NAMES ---
+  st
+  markdown
+  slider
+  number_input
+  --- CONSTS ---
+  '### ⚙️ Planner Settings'
+  'Hotel Capacity (rooms)'
+  'Avg tourists / room'
+  'Tourists per staff member'
+  'Tourists per transport unit'
+'### ⚙️ Planner Settings'
+'Hotel Capacity (rooms)'
+'Avg tourists / room'
+'Tourists per staff member'
+'Tourists per transport unit'
+'Resource Planner'
+'%Y-%m-%d'
+'%d %B %Y'
+  --- NAMES ---
+  pd
+  read_csv
+  BASE_DIR
+  to_datetime
+  copy
+  exists
+  max
+  iterrows
+  json
+  loads
+  get
+  append
+  DataFrame
+  concat
+  sort_values
+  reset_index
+  --- CONSTS ---
+  'kandy_festival_demand_NOMISSING.csv'
+  'week_start'
+  'is_normal_operation'
+  'models/predictions_cache.csv'
+  'model_name'
+  'random_forest'
+  'features_used'
+  'Normal'
+  'is_esala_perahera'
+  'Esala_Perahera'
+  'is_esala_preparation'
+  'Esala_Prep'
+  'is_poson_perahera'
+  'Poson_Perahera'
+  'is_vesak'
+  'Vesak'
+  'is_sinhala_tamil_new_year'
+  'Sinhala_Tamil_New_Year'
+  'is_christmas_new_year'
+  'Christmas_New_Year'
+  'is_deepavali'
+  'Deepavali'
+  'is_thai_pongal'
+  'Thai_Pongal'
+  'is_august_buildup'
+  'August_Buildup'
+  'predicted_arrivals'
+  'avg_weekly_rainfall_mm'
+'ℹ️ No forecast data available for resource planning at the moment.'
+'week_start'
+  --- NAMES ---
+  enumerate
+  len
+  --- CONSTS ---
+'📅 Select Planning Week'
+'estimated_weekly_kandy_arrivals'
+'primary_festival'
+'avg_weekly_rainfall_mm'
+'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1600&auto=format&fit=crop'
+'\n<div style="padding:10px 0px 20px 0px;">\n  <div style="font-size:2.2rem;font-weight:800;color:#0A2540;">🏨 Resort & Resource Planner</div>\n  <div style="color:#1E293B;font-size:1.05rem;font-weight:500;">\n      Translate AI arrival forecasts directly into actionable operational requirements for your hotel, transport fleet, and staff rosters.\n  </div>\n</div>\n'
+"<h4 style='color:#0A2540;margin-bottom:6px;font-weight:700;'>📋 Resource Requirements for the Week of <span style='color:var(--tropical-green)'>"
+'</span></h4>'
+'<div class="section-header">📊 Weekly Resource Requirements</div>'
+'https://images.unsplash.com/photo-1549071477-84a1dced01a3?q=80&w=150&auto=format&fit=crop'
+','
+'Expected Arrivals'
+''
+'https://images.unsplash.com/photo-1556761175-129418cb210d?q=80&w=150&auto=format&fit=crop'
+'Staff Required'
+'+'
+'.0f'
+' contingency'
+'delta-up'
+'https://images.unsplash.com/photo-1533588269785-177341ea222f?q=80&w=150&auto=format&fit=crop'
+'Transport Units'
+'~'
+' tourists/unit'
+'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=150&auto=format&fit=crop'
+'.1f'
+'%'
+'Occupancy Pressure'
+'⚠️ Critical!'
+'✅ Normal'
+'🟡 High'
+'delta-down'
+'\n        <div class="kpi-card">\n            <img src="'
+'" class="kpi-thumb">\n            <div class="kpi-content">\n                <div class="kpi-label">'
+'</div>\n                <div class="kpi-value">'
+'</div>\n                <div class="kpi-delta '
+'">'
+'</div>\n            </div>\n        </div>'
+'<br>'
+'🚨 **Critical Capacity Alert** — Occupancy pressure at **'
+'%** for week of '
+'. Consider activating overflow accommodation partnerships and pre-booking buses.'
+'⚠️ **High Occupancy** — '
+'% pressure. Pre-position extra transport and notify hoteliers.'
+'🎉 **Festival Week — '
+'_'
+' '
+'** | Demand multiplier active. Expect '
+' arrivals. Coordinate with event organisers for traffic management.'
+'🌧️ **Heavy Rainfall Forecast** — '
+' mm expected. Arrange covered transport options and visitor shelters.'
+'<div class="section-header">📈 Occupancy Pressure Gauge</div>'
+'#34d399'
+'#fbbf24'
+'#f87171'
+'gauge+number+delta'
+'#e0e7ff'
+'#475569'
+'color'
+'#64748b'
+'#0f1f36'
+'rgba(52,211,153,.12)'
+'rgba(251,191,36,.12)'
+'rgba(248,113,113,.12)'
+'Hotel Occupancy Pressure'
+'#94a3b8'
+'rgba(0,0,0,0)'
+'staff'
+'transport'
+'W%U\n%b %Y'
+'week_label'
+'rgba(99,102,241,.8)'
+'rgba(16,185,129,.7)'
+'group'
+'12-Week Resource Forecast'
+'#1e293b'
+'<div class="section-header">📋 4-Week Forward Planning Table</div>'
+'Staff Needed'
+'Occupancy %'
+'%d %b %Y'
+'Week of'
+'Arrivals Forecast'
+'Event/Festival'

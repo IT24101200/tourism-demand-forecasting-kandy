@@ -1,0 +1,280 @@
+--- NAMES ---
+__doc__
+sys
+pathlib
+Path
+path
+insert
+str
+__file__
+parent
+streamlit
+st
+pandas
+pd
+plotly.express
+express
+px
+plotly.graph_objects
+graph_objects
+go
+plotly.subplots
+make_subplots
+utils.db
+fetch_national_tourism
+utils.sidebar
+render_sidebar
+utils.auth
+require_auth
+utils.theme
+apply_plotly_theme
+set_page_config
+apply_custom_theme
+markdown
+cache_data
+load_national
+df
+empty
+info
+stop
+sorted
+dropna
+astype
+int
+unique
+all_years
+sidebar
+slider
+year_range
+copy
+df_f
+image
+sum
+total_arrivals
+columns
+has_revenue
+has_occ
+has_month
+total_revenue
+mean
+avg_occ
+idxmax
+peak_idx
+loc
+peak_row
+get
+peak_month_str
+strip
+peak_label
+peak_arrivals
+len
+last_two
+prev_yr
+curr_yr
+yoy_pct
+yoy_col
+yoy_arrow
+abs
+yoy_html
+c1
+c2
+c3
+c4
+col
+label
+value
+delta_html
+sub
+html
+fig
+add_trace
+Scatter
+dict
+update_layout
+plotly_chart
+col_l
+col_r
+origin_map
+items
+origin_data
+pie
+list
+keys
+values
+fig_pie
+update_traces
+agg_dict
+groupby
+agg
+reset_index
+annual
+pct_change
+mul
+round
+sort_values
+rename
+fmt
+dataframe
+style
+format
+pivot_table
+pivot
+month_names
+imshow
+fig_heat
+caption
+col1
+col2
+col3
+--- CONSTS ---
+'\npages/1_🏠_National_Overview.py  —  National Tourism Overview\n'
+'National Tourism Overview | Kandy DSS'
+'🏔️'
+'wide'
+'expanded'
+'\n<style>\n@import url(\'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap\');\nhtml, body, [class*="css"] { font-family: \'Inter\', sans-serif; }\n.main { background: #0a0e1a; }\nsection[data-testid="stSidebar"] {\n    background: linear-gradient(180deg, #0d1528 0%, #111827 100%);\n    border-right: 1px solid #1e293b;\n}\n.kpi-card {\n    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);\n    border: 1px solid #334155; border-radius: 16px;\n    padding: 24px 28px; text-align: center;\n    transition: transform 0.2s, border-color 0.2s;\n}\n.kpi-card:hover { transform: translateY(-3px); border-color: #6366f1; }\n.kpi-label { color: #94a3b8; font-size: 0.78rem; font-weight: 600;\n             letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }\n.kpi-value { color: #f8fafc; font-size: 2.2rem; font-weight: 800; line-height: 1.1; }\n.kpi-sub   { color: #64748b; font-size: 0.75rem; margin-top: 4px; }\n.kpi-delta-pos { color: #34d399; font-size: 0.85rem; font-weight: 600; }\n.kpi-delta-neg { color: #f87171; font-size: 0.85rem; font-weight: 600; }\n.section-header {\n    color: #e2e8f0; font-size: 1.35rem; font-weight: 700;\n    margin: 32px 0 16px 0; padding-bottom: 8px;\n    border-bottom: 2px solid #6366f1; display: inline-block;\n}\n.sb-section {\n    color: #e2e8f0; font-size: 1.05rem; font-weight: 600;\n    margin: 24px 0 12px 0; padding-bottom: 6px;\n    border-bottom: 1px solid #334155;\n}\n</style>\n'
+'National Overview'
+  --- NAMES ---
+  pandas
+  pathlib
+  Path
+  __file__
+  parent
+  exists
+  read_csv
+  fetch_national_tourism
+  empty
+  ValueError
+  Exception
+  st
+  error
+  DataFrame
+  columns
+  to_datetime
+  astype
+  str
+  zfill
+  to_numeric
+  sort_values
+  reset_index
+  --- CONSTS ---
+  'Sri_Lanka_Tourist_Forecast_Training_Dataset_2015_2025.csv'
+  'skip'
+  'Empty Supabase response'
+  'Could not load national data: '
+    --- NAMES ---
+    strip
+    lower
+    replace
+    --- CONSTS ---
+    ' '
+    '_'
+  'year'
+  '-'
+  'month'
+  '-01'
+  'date'
+  'coerce'
+'ℹ️ No national tourism data available at the moment. Please check back later.'
+'year'
+'<div class="sb-section">Filters</div>'
+'Year Range'
+'https://images.unsplash.com/photo-1586861217036-7c963629e4db?q=80&w=1600&auto=format&fit=crop'
+'\n<div style="padding:20px 0px;margin-bottom:12px;">\n  <div style="font-size:2.6rem;font-weight:800;color: #0A2540;">\n    🇱🇰 Sri Lanka National Tourism Dashboard\n  </div>\n  <div style="color:#1E293B;font-size:1.1rem;max-width:800px;font-weight:500;">\n    Real-time insights into tourist arrivals, revenue trends, and demand forecasting\n    for the Kandy District and beyond.\n  </div>\n</div>\n'
+'tourist_arrivals'
+'revenue_usd_millions'
+'hotel_occupancy_rate_pct'
+'month_name'
+''
+' '
+'kpi-delta-pos'
+'kpi-delta-neg'
+'▲'
+'▼'
+'<div class="'
+'">'
+'.1f'
+'% YoY</div>'
+'Total Arrivals'
+','
+'total tourists'
+'Total Revenue'
+'$'
+',.1f'
+'M'
+'—'
+'USD millions'
+'Avg Hotel Occupancy'
+'%'
+'occupancy rate'
+'Peak Month'
+' arrivals'
+'<div class="kpi-card"><div class="kpi-label">'
+'</div><div class="kpi-value">'
+'</div>'
+'<div class="kpi-sub">'
+'</div></div>'
+'<div class="section-header">📈 Historical Arrivals & Revenue Trend</div>'
+'secondary_y'
+'date'
+'Tourist Arrivals'
+'#818cf8'
+'tozeroy'
+'rgba(129,140,248,0.1)'
+'<b>%{x|%b %Y}</b><br>Arrivals: %{y:,.0f}<extra></extra>'
+'Revenue (USD M)'
+'#34d399'
+'dot'
+'<b>%{x|%b %Y}</b><br>Revenue: $%{y:.1f}M<extra></extra>'
+'#0a0e1a'
+'#94a3b8'
+'Inter'
+'rgba(0,0,0,0)'
+'#334155'
+'x unified'
+'#1e293b'
+'<div class="section-header">🌍 Arrivals by Country of Origin</div>'
+'india_arrivals'
+'uk_arrivals'
+'china_arrivals'
+'germany_arrivals'
+'russia_arrivals'
+'other_arrivals'
+  --- NAMES ---
+  df_f
+  columns
+  sum
+  float
+  --- CONSTS ---
+'white'
+'<b>%{label}</b><br>%{value:,.0f} arrivals<extra></extra>'
+'Country-level breakdown not available in current dataset.'
+'<div class="section-header">📅 Annual Summary</div>'
+'Growth %'
+'Year'
+'{:,.0f}'
+'{:.1f}%'
+'${:.1f}M'
+'<div class="section-header">🗓️ Seasonal Demand Heatmap</div>'
+'month'
+'sum'
+  --- NAMES ---
+  month_names
+  int
+  --- CONSTS ---
+'Viridis'
+'auto'
+'Arrivals'
+'Month'
+'Data: local CSV / Supabase `national_tourism` table · DSS v1.0.0'
+'<div class="section-header">📸 Kandy Regional Highlights</div>'
+'<div class="rounded-img">'
+'https://images.unsplash.com/photo-1623910271131-ab85d30ddc54?q=80&w=800&auto=format&fit=crop'
+"<h4 style='color:#0A2540; margin-top: 12px; margin-bottom: 4px;'>🛕 Temple of the Sacred Tooth Relic</h4>"
+"<p style='color:#1E293B; font-size:0.95rem;'>The most revered Buddhist shrine in Sri Lanka, attracting thousands of daily pilgrims and global tourists.</p>"
+'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?q=80&w=800&auto=format&fit=crop'
+"<h4 style='color:#0A2540; margin-top: 12px; margin-bottom: 4px;'>🌺 Peradeniya Botanical Gardens</h4>"
+"<p style='color:#1E293B; font-size:0.95rem;'>Renowned for its collection of orchids and historical avenues, perfect for eco-tourism.</p>"
+'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?q=80&w=800&auto=format&fit=crop'
+"<h4 style='color:#0A2540; margin-top: 12px; margin-bottom: 4px;'>⛰️ Hanthana Mountain Range</h4>"
+"<p style='color:#1E293B; font-size:0.95rem;'>A premier destination for hiking and adventure tourism surrounding the Kandy basin.</p>"

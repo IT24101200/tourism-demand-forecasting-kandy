@@ -1,0 +1,254 @@
+--- NAMES ---
+__doc__
+sys
+pathlib
+Path
+path
+insert
+str
+__file__
+parent
+streamlit
+st
+pandas
+pd
+numpy
+np
+plotly.graph_objects
+graph_objects
+go
+utils.db
+fetch_kandy_weekly
+fetch_predictions
+utils.sidebar
+render_sidebar
+utils.auth
+require_auth
+utils.theme
+apply_plotly_theme
+apply_custom_theme
+set_page_config
+markdown
+_forecast_controls
+model_choice
+show_ci
+hist_weeks
+cache_data
+load_data
+hist_df
+rf_df
+lstm_df
+image
+target_col
+tail
+copy
+recent
+len
+iloc
+DataFrame
+prev26
+empty
+int
+mean
+avg_recent
+avg_prev_period
+chg_pct
+notna
+any
+idxmax
+peak_idx
+loc
+peak_week
+strftime
+peak_date
+peak_arr
+columns
+sum
+monsoon_weeks
+next_rf_avg
+kc1
+kc2
+kc3
+kc4
+abs
+col
+label
+value
+sub
+Figure
+fig
+add_trace
+Scatter
+dict
+iterrows
+_
+row
+add_vrect
+Timedelta
+add_annotation
+ws
+concat
+update_layout
+plotly_chart
+tbl
+to_datetime
+dt
+month
+month_series
+demand_label
+range
+dataframe
+download_button
+to_csv
+encode
+info
+caption
+--- CONSTS ---
+'\npages/2_📈_Kandy_Forecast.py  —  Kandy Weekly Forecast Dashboard\n'
+'Kandy Forecast | Tourist DSS'
+'📈'
+'wide'
+'expanded'
+'\n<style>\n@import url(\'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap\');\nhtml, body, [class*="css"] { font-family: \'Inter\', sans-serif; }\n.main { background: #0a0e1a; }\nsection[data-testid="stSidebar"] {\n    background: linear-gradient(180deg, #0d1528 0%, #111827 100%);\n    border-right: 1px solid #1e293b;\n}\n.kpi-card {\n    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);\n    border: 1px solid #334155; border-radius: 16px;\n    padding: 20px 24px; text-align: center;\n    transition: transform 0.2s, border-color 0.2s;\n}\n.kpi-card:hover { transform: translateY(-3px); border-color: #38bdf8; }\n.kpi-label { color: #94a3b8; font-size: 0.75rem; font-weight: 600;\n             letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }\n.kpi-value { color: #f8fafc; font-size: 2rem; font-weight: 800; }\n.section-header {\n    color: #e2e8f0; font-size: 1.25rem; font-weight: 700;\n    margin: 28px 0 14px 0; padding-bottom: 6px;\n    border-bottom: 2px solid #38bdf8; display: inline-block;\n}\n</style>\n'
+  --- NAMES ---
+  st
+  markdown
+  radio
+  model_choice
+  toggle
+  show_ci
+  slider
+  hist_weeks
+  --- CONSTS ---
+  'Page-2-specific controls rendered inside the shared sidebar.'
+  '<div class="sb-section">Forecast Settings</div>'
+  'Active Forecast Model'
+  'Show Confidence Interval'
+  'Historical weeks to display'
+'Both'
+'Kandy Forecast'
+  --- NAMES ---
+  Path
+  __file__
+  parent
+  fetch_kandy_weekly
+  empty
+  ValueError
+  Exception
+  pd
+  read_csv
+  columns
+  to_datetime
+  to_numeric
+  dropna
+  sort_values
+  reset_index
+  DataFrame
+  fetch_predictions
+  exists
+  copy
+  --- CONSTS ---
+  'kandy_festival_demand_NOMISSING.csv'
+  'skip'
+    --- NAMES ---
+    strip
+    lower
+    replace
+    --- CONSTS ---
+    ' '
+    '_'
+  'week_start'
+  'coerce'
+  'estimated_weekly_kandy_arrivals'
+  'models'
+  'predictions_cache.csv'
+  'random_forest'
+  'lstm'
+  'model_name'
+'https://images.unsplash.com/photo-1546484394-bb9f1a044733?q=80&w=1600&auto=format&fit=crop'
+'\n<div style="padding:10px 0px 20px 0px;">\n  <div style="font-size:2.2rem;font-weight:800;color:#0A2540;">\n    📈 Kandy District — Weekly Forecast\n  </div>\n  <div style="color:#1E293B;font-size:1.05rem;font-weight:500;">\n    Hotel Manager Intelligence Dashboard · AI-powered demand forecasting\n  </div>\n</div>\n'
+'estimated_weekly_kandy_arrivals'
+'week_start'
+'%d %b %Y'
+'is_monsoon_week'
+'predicted_arrivals'
+'Avg Weekly Arrivals'
+','
+'↑'
+'↓'
+' '
+'.1f'
+'% vs prev period'
+'Peak Week (Displayed)'
+' arrivals'
+'Monsoon Weeks'
+'high rain risk weeks'
+'RF 26-wk Avg Forecast'
+'predicted weekly arrivals'
+'\n        <div class="kpi-card">\n            <div class="kpi-label">'
+'</div>\n            <div class="kpi-value">'
+'</div>\n            <div style="color:#64748b;font-size:0.73rem;margin-top:3px;">'
+'</div>\n        </div>'
+''
+'<div class="section-header">📊 Historical vs. Forecasted Arrivals</div>'
+'Historical (Actual)'
+'lines'
+'#818cf8'
+'tozeroy'
+'rgba(129,140,248,0.08)'
+'<b>%{x|%d %b %Y}</b><br>Actual: %{y:,.0f}<extra></extra>'
+'rgba(56,189,248,0.06)'
+'is_esala_perahera'
+'🎭 Esala'
+'#fde047'
+'rgba(0,0,0,0.6)'
+'RF Forecast'
+'lines+markers'
+'#34d399'
+'dot'
+'<b>%{x|%d %b %Y}</b><br>RF Pred: %{y:,.0f}<extra></extra>'
+'lower_bound'
+'upper_bound'
+'toself'
+'rgba(52,211,153,0.1)'
+'rgba(0,0,0,0)'
+'RF 95% CI'
+'skip'
+'LSTM Forecast'
+'#fb923c'
+'dash'
+'<b>%{x|%d %b %Y}</b><br>LSTM Pred: %{y:,.0f}<extra></extra>'
+'#0a0e1a'
+'#94a3b8'
+'Inter'
+'#334155'
+'h'
+'bottom'
+'x unified'
+'#1e293b'
+'Week'
+'Weekly Arrivals'
+'<div class="section-header">🗓️ 26-Week Forecast Breakdown</div>'
+'Week Start'
+  --- NAMES ---
+  month_series
+  iloc
+  rf_df
+  --- CONSTS ---
+  'predicted_arrivals'
+  '🎭 Peak — Esala Perahera'
+  '🌧️ Monsoon — Lower Demand'
+  '🎄 Holiday — High Demand'
+  '📈 High Demand'
+  '📉 Low Demand'
+  '✅ Normal'
+  --- NAMES ---
+  demand_label
+  --- CONSTS ---
+'Risk / Event'
+'⬇️  Download Forecast CSV'
+'kandy_26week_forecast.csv'
+'text/csv'
+'🔄 No forecast data found. Run `python train_models.py` first.'
+'ℹ️'
+'Forecast sourced from `predictions` table · Models: Random Forest + LSTM · DSS v1.0.0'
