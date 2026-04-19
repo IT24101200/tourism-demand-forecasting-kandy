@@ -233,7 +233,16 @@ if not future_alerts.empty:
                     </div>
                 </div>""", unsafe_allow_html=True)
 
-st.markdown('<div class="section-header">🗓️ Monthly Climate Pattern (Average)</div>', unsafe_allow_html=True)
+min_date = df_all["week_start"].min().strftime("%b %Y")
+max_date = df_all["week_start"].max().strftime("%b %Y")
+st.markdown(f'''
+<div class="section-header" style="display:flex; align-items:center; gap:8px;">
+    🗓️ Monthly Climate Pattern (Average) 
+    <span style="font-size:0.6em; color:#87929a; font-weight:normal; margin-top:4px;">
+        [{min_date} — {max_date}]
+    </span>
+</div>
+''', unsafe_allow_html=True)
 if "avg_weekly_rainfall_mm" in df_all.columns:
     df_all["month"] = df_all["week_start"].dt.month
     df_all["month_name"] = df_all["week_start"].dt.strftime("%b")
