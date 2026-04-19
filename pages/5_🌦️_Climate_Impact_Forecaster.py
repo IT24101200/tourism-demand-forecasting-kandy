@@ -81,7 +81,7 @@ def load_festival_weekly():
     if cache_path.exists():
         curr_max_date = df["week_start"].max()
         cdf = pd.read_csv(cache_path)
-        cdf = cdf[cdf["model_name"] == "xgboost"].copy()
+        cdf = cdf[cdf["model_name"] == "random_forest"].copy()
         
         def unpack_feats(row):
             feats = json.loads(row["features_used"])
