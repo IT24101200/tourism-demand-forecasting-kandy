@@ -322,9 +322,9 @@ def render_auth_page():
         _hero_html = (
             '<div class="auth-hero">'
             '<div class="hero-eyebrow">&#x1F3D4;&#xFE0F;&nbsp;&nbsp;Kandy, Sri Lanka</div>'
-            '<div class="hero-title">The Intelligence<br>Layer for <span>Kandy\'s</span><br>Tourism Sector.</div>'
-            '<p class="hero-desc">AI-driven demand forecasting, real-time weather and festival analytics'
-            ' &mdash; purpose-built for hospitality leaders in Kandy.</p>'
+            '<div class="hero-title">AI-Driven Tourism<br>Demand Forecasting<br>System — <span>Kandy</span><br>District.</div>'
+            '<p class="hero-desc">Intelligent demand forecasting powered by XGBoost &amp; LSTM models, real-time weather'
+            ' and festival analytics &mdash; purpose-built for hospitality leaders in Kandy.</p>'
             + _img_grid_html
             + '<ul class="feat-list">'
             '<li>AI-powered weekly arrival forecasting</li>'

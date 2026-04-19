@@ -6,7 +6,7 @@ Tourist Demand Forecasting DSS — AI Model Training Pipeline
 This script:
   1. Fetches historical data from Supabase
   2. Preprocesses & engineers features
-  3. Trains a Random Forest Regressor  →  saved as models/rf_model.pkl
+  3. Trains an XGBoost Regressor        →  saved as models/xgb_model.pkl
   4. Trains an LSTM neural network     →  saved as models/lstm_model.keras
   5. Generates 26-week future forecasts and pushes them to Supabase
 
@@ -40,7 +40,7 @@ BASE_DIR   = Path(__file__).parent
 MODELS_DIR = BASE_DIR / "models"
 MODELS_DIR.mkdir(exist_ok=True)
 
-RF_PATH   = MODELS_DIR / "rf_model.pkl"
+XGB_PATH  = MODELS_DIR / "xgb_model.pkl"
 LSTM_PATH = MODELS_DIR / "lstm_model.keras"
 SCALER_PATH = MODELS_DIR / "feature_scaler.pkl"
 
@@ -251,11 +251,9 @@ def get_feature_list(df: pd.DataFrame) -> list[str]:
 
 
 # ══════════════════════════════════════════════════════════════
-#  STEP 3A — Random Forest
+#  STEP 3A — XGBoost Regressor
 # ══════════════════════════════════════════════════════════════
-def train_random_forest(X_train, y_train, X_test, y_test):
-    # NOTE: Function keeps original name to preserve downstream app architecture, 
-    # but the engine has been upgraded to an XGBoost Regressor for extreme accuracy (>95%).
+def train_xgboost(X_train, y_train, X_test, y_test):
     print("\n🚀  Training XGBoost with Aggressive Hyperparameter Tuning …")
     
     param_grid = {
@@ -283,21 +281,21 @@ def train_random_forest(X_train, y_train, X_test, y_test):
     print("   🔍 Searching for optimal hyperparameters...")
     grid_search.fit(X_train, y_train)
     
-    rf = grid_search.best_estimator_
+    xgb_best = grid_search.best_estimator_
     print(f"   🏆 Best Parameters Found: {grid_search.best_params_}")
 
     # To guarantee high stability, if test performance dips on black-swan events, the model 
     # uses optimal historical trees.
-    y_pred = rf.predict(X_test)
+    y_pred = xgb_best.predict(X_test)
     mae  = mean_absolute_error(y_test, y_pred)
     rmse = math.sqrt(mean_squared_error(y_test, y_pred))
     r2   = r2_score(y_test, y_pred)
     print(f"   XGBoost Test | MAE: {mae:,.0f}  RMSE: {rmse:,.0f}  R²: {r2:.4f}")
 
-    with open(RF_PATH, "wb") as f:
-        pickle.dump(rf, f)
-    print(f"   💾 Saved → {RF_PATH}")
-    return rf, {"mae": mae, "rmse": rmse, "r2": r2}
+    with open(XGB_PATH, "wb") as f:
+        pickle.dump(xgb_best, f)
+    print(f"   💾 Saved → {XGB_PATH}")
+    return xgb_best, {"mae": mae, "rmse": rmse, "r2": r2}
 
 
 # ══════════════════════════════════════════════════════════════
@@ -587,10 +585,10 @@ def main():
         pickle.dump((scaler, feat_cols, y_scaler), f)
     print(f"   💾 Scaler saved → {SCALER_PATH}")
 
-    # ── 4A. Random Forest ──────────────────────────────────────
-    rf_model, rf_metrics = train_random_forest(X_train, y_train, X_test, y_test)
-    y_pred_rf = rf_model.predict(X_test)
-    generate_model_insights(rf_model, X_test, y_test, y_pred_rf, feat_cols)
+    # ── 4A. XGBoost ──────────────────────────────────────────────
+    xgb_model, xgb_metrics = train_xgboost(X_train, y_train, X_test, y_test)
+    y_pred_xgb = xgb_model.predict(X_test)
+    generate_model_insights(xgb_model, X_test, y_test, y_pred_xgb, feat_cols)
 
     # ── 4B. LSTM ───────────────────────────────────────────────
     lstm_model, lstm_metrics = train_lstm(X_scaled_all, y_scaled, split_idx, len(feat_cols), y_scaler)
@@ -601,8 +599,8 @@ def main():
     future_df = generate_future_features(df, weeks=FORECAST_WEEKS)
     feat_future = [c for c in feat_cols if c in future_df.columns]
 
-    # RF predictions
-    rf_preds_future = rf_model.predict(future_df[feat_future].fillna(0).values)
+    # XGBoost predictions
+    xgb_preds_future = xgb_model.predict(future_df[feat_future].fillna(0).values)
 
     # LSTM predictions (autoregressive)
     # The last historical window ends at the final known week.
@@ -631,9 +629,9 @@ def main():
 
     prediction_records = []
     for i, row in future_df.iterrows():
-        rf_val = int(max(0, round(rf_preds_future[i])))
+        xgb_val = int(max(0, round(xgb_preds_future[i])))
         lstm_val = int(max(0, round(lstm_future_preds[i])))
-        margin = int(rf_val * 0.12)
+        margin = int(xgb_val * 0.12)
 
         base = {
             "week_start":    row["week_start"],
@@ -645,9 +643,9 @@ def main():
         prediction_records.append({
             **base,
             "model_name":        "random_forest",
-            "predicted_arrivals": rf_val,
-            "lower_bound":       max(0, rf_val - margin),
-            "upper_bound":       rf_val + margin,
+            "predicted_arrivals": xgb_val,
+            "lower_bound":       max(0, xgb_val - margin),
+            "upper_bound":       xgb_val + margin,
             "features_used":     json.dumps(row[feat_future].fillna(0).to_dict()),
         })
         prediction_records.append({
@@ -665,7 +663,7 @@ def main():
     # ── Summary ───────────────────────────────────
     print("\n" + "=" * 60)
     print("  Training Complete!")
-    print(f"  Random Forest  --> MAE: {rf_metrics['mae']:,.0f}  R2: {rf_metrics['r2']:.4f}")
+    print(f"  XGBoost        --> MAE: {xgb_metrics['mae']:,.0f}  R2: {xgb_metrics['r2']:.4f}")
     print(f"  LSTM           --> MAE: {lstm_metrics['mae']:,.0f}  R2: {lstm_metrics['r2']:.4f}")
     print(f"  Forecast weeks : {FORECAST_WEEKS} weeks (1 year)")
     print(f"  Forecast range : {push_result.get('date_start')} to {push_result.get('date_end')}")

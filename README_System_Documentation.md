@@ -456,7 +456,7 @@ During `train_models.py` execution, the script mathematically generates and stat
 | `train_models.py:179-222` | `train_xgboost()` | Train XGBoost with GridSearchCV |
 | `train_models.py:256-296` | `train_lstm()` | Train LSTM with Keras |
 | `train_models.py:302-410` | `generate_future_features()` | Build 52-week synthetic feature matrix |
-| `train_models.py:523` | `rf_model.predict()` | XGBoost inference on future data |
+| `train_models.py:523` | `xgb_model.predict()` | XGBoost inference on future data |
 | `train_models.py:531-548` | `lstm_model.predict()` | LSTM autoregressive inference |
 | `train_models.py:416-467` | `push_predictions()` | Save predictions to Supabase + CSV |
 

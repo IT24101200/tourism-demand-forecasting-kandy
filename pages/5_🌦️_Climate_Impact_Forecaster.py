@@ -277,23 +277,23 @@ st.markdown('<div class="section-header">🧠 AI Feature Importance Analysis</di
 st.markdown("This chart extracts the exact predictive weights from the underlying Machine Learning model to demonstrate how significantly **Weather Conditions** (like Rainfall and Temperature) impact tourist demand compared to calendar and festival factors. This fulfills the *Feature Importance Analysis* mitigation strategy.", unsafe_allow_html=True)
 
 try:
-    RF_PATH = BASE_DIR / "models" / "xgb_model.pkl"
+    XGB_PATH = BASE_DIR / "models" / "xgb_model.pkl"
     SCALER_PATH = BASE_DIR / "models" / "feature_scaler.pkl"
     
-    if RF_PATH.exists() and SCALER_PATH.exists():
-        with open(RF_PATH, "rb") as f:
-            rf_model = pickle.load(f)
+    if XGB_PATH.exists() and SCALER_PATH.exists():
+        with open(XGB_PATH, "rb") as f:
+            xgb_model = pickle.load(f)
         with open(SCALER_PATH, "rb") as f:
             scaler_obj = pickle.load(f)
             
         feat_cols = []
         if isinstance(scaler_obj, tuple) and len(scaler_obj) > 1:
             feat_cols = scaler_obj[1]
-        elif hasattr(rf_model, "feature_names_in_"):
-            feat_cols = rf_model.feature_names_in_
+        elif hasattr(xgb_model, "feature_names_in_"):
+            feat_cols = xgb_model.feature_names_in_
             
-        if hasattr(rf_model, "feature_importances_") and feat_cols:
-            importances = rf_model.feature_importances_
+        if hasattr(xgb_model, "feature_importances_") and feat_cols:
+            importances = xgb_model.feature_importances_
             # Create a dataframe of top features
             imp_df = pd.DataFrame({"Feature": feat_cols, "Importance": importances})
             imp_df = imp_df.sort_values(by="Importance", ascending=True)

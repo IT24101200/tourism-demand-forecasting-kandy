@@ -19,7 +19,7 @@ require_auth()
 theme = get_theme()
 
 BASE_DIR = Path(__file__).parent.parent
-RF_PATH = BASE_DIR / "models" / "xgb_model.pkl"
+XGB_PATH = BASE_DIR / "models" / "xgb_model.pkl"
 SCALER_PATH = BASE_DIR / "models" / "feature_scaler.pkl"
 
 st.set_page_config(
@@ -211,11 +211,11 @@ render_sidebar(active_page="Custom Demand Forecaster")
 # ── Load model ────────────────────────────────────────────────────
 @st.cache_resource
 def load_model():
-    rf_model, scaler_obj, feat_cols, lstm_model, y_scaler = None, None, [], None, None
-    if not RF_PATH.exists() or not SCALER_PATH.exists():
+    xgb_model, scaler_obj, feat_cols, lstm_model, y_scaler = None, None, [], None, None
+    if not XGB_PATH.exists() or not SCALER_PATH.exists():
         return None, None, None, None, None
-    with open(RF_PATH, "rb") as f:
-        rf_model = pickle.load(f)
+    with open(XGB_PATH, "rb") as f:
+        xgb_model = pickle.load(f)
         
     lstm_path = BASE_DIR / "models" / "lstm_model.keras"
     if lstm_path.exists():
@@ -227,7 +227,7 @@ def load_model():
     with open(SCALER_PATH, "rb") as f:
         scaler_obj = pickle.load(f)
 
-    feat_cols = rf_model.feature_names_in_ if hasattr(rf_model, "feature_names_in_") else []
+    feat_cols = xgb_model.feature_names_in_ if hasattr(xgb_model, "feature_names_in_") else []
 
     if isinstance(scaler_obj, tuple):
         scaler = scaler_obj[0]
@@ -237,7 +237,7 @@ def load_model():
             y_scaler = scaler_obj[2]
     else:
         scaler = scaler_obj
-    return rf_model, scaler, feat_cols, lstm_model, y_scaler
+    return xgb_model, scaler, feat_cols, lstm_model, y_scaler
 
 @st.cache_data
 def get_baseline():
@@ -254,7 +254,7 @@ def get_baseline():
         "min": df["estimated_weekly_kandy_arrivals"].min()
     }
 
-rf_model, scaler, feat_cols, lstm_model, y_scaler = load_model()
+xgb_model, scaler, feat_cols, lstm_model, y_scaler = load_model()
 baseline = get_baseline()
 
 
@@ -267,7 +267,7 @@ render_page_banner(
     icon="🎛️",
 )
 
-if rf_model is None:
+if xgb_model is None:
     st.warning("""
     ⚠️ **Model not found.**
     Please run the training pipeline first:
@@ -374,36 +374,16 @@ with tab_time:
         week_of_year = target_date.isocalendar()[1]
         quarter = (month - 1) // 3 + 1
 
-    # -- Market Momentum --
+    # -- Baseline Configuration --
     with st.container(border=True):
         st.markdown("""
-        <div class="panel-header">📈 Market Momentum</div>
-        <div class="panel-desc">How many tourists visited in the previous week? This is the AI model's primary momentum anchor.</div>
+        <div class="panel-header">📈 Current Market Baseline</div>
+        <div class="panel-desc">Define your market baseline. This is used as the visual anchor in the impact charts to compare against the AI's projection.</div>
         """, unsafe_allow_html=True)
-
-        avg_arr = int(baseline["mean"]) if baseline else 15000
-        def_lag = avg_arr * 1.5 if def_esala else (avg_arr * 0.5 if def_econ else (avg_arr * 0.7 if preset == "Severe Monsoon Season" else avg_arr))
-
-        def_idx = 0
-        if preset == "Peak Esala Perahera (Ideal Weather)": def_idx = 4
-        elif preset == "Economic Crisis Impact": def_idx = 1
-        elif preset == "Severe Monsoon Season": def_idx = 1
-
-        momentum_preset = st.selectbox(
-            "Market State (Quick Select)",
-            ["Custom (Manual Override)", "Quiet / Low Season (~5k)", "Average Run-Rate (~15k)", "High Season Surge (~30k)", "Peak Festival Surge (~55k)"],
-            index=def_idx,
-            help="Choose a market state to auto-set recent arrivals, or select Custom to enter your own value."
-        )
-
-        if "Quiet" in momentum_preset: target_val = 5000
-        elif "Average" in momentum_preset: target_val = 15000
-        elif "High Season" in momentum_preset: target_val = 30000
-        elif "Peak Festival" in momentum_preset: target_val = 55000
-        else: target_val = int(def_lag)
-
-        lag_val = st.number_input("Exact Arrivals (Last 7 Days)", min_value=0, max_value=200000, step=1000, value=target_val,
-            help="The exact number of arrivals in the most recent 7-day window. This strongly influences the prediction.")
+        
+        default_base = int(baseline["mean"]) if baseline else 785
+        baseline_val_input = st.number_input("Baseline Arrivals (Last 7 Days)", min_value=0, max_value=20000, step=100, value=default_base,
+            help="Your recent weekly average for Kandy. Used exclusively as a baseline marker, independent of the ML simulation engine.")
 
 # ── TAB 2 ──
 with tab_geom:
@@ -587,34 +567,18 @@ feature_dict = {
     "is_covid_period": int(is_covid),
     "is_easter_attack_period": int(is_easter),
     "is_economic_crisis": int(is_econ),
-    "is_normal_operation": is_normal,
-    "arrivals_lag_1": lag_val,
-    "arrivals_lag_2": lag_val,
-    "arrivals_lag_4": lag_val,
-    "arrivals_lag_8": lag_val,
-    "arrivals_lag_13": lag_val
+    "is_normal_operation": int(is_normal)
 }
 
 try:
     input_vec = np.array([feature_dict.get(c, 0.0) for c in feat_cols]).reshape(1, -1)
     
-    if lstm_model is None:
-        st.error("Deep Learning engine not loaded. Please train the model.")
+    if xgb_model is None:
+        st.error("Machine Learning engine not loaded. Please train the model.")
         st.stop()
         
-    scaled_in = scaler.transform(input_vec) if scaler else input_vec
-    seq_in = np.tile(scaled_in, (1, 12, 1)) # Duplicate scenario for 12-week sequential lookback
-    pred_scaled = float(lstm_model.predict(seq_in, verbose=0)[0][0])
-    if y_scaler is not None:
-        raw_pred = float(y_scaler.inverse_transform([[pred_scaled]])[0][0])
-    else:
-        raw_pred = pred_scaled
-
-    # Safety bounding
-    min_possible = lag_val * 0.2
-    max_possible = lag_val * 4.0
-    predicted = max(min_possible, min(raw_pred, max_possible))
-    predicted = max(0.0, round(predicted))
+    raw_pred = float(xgb_model.predict(input_vec)[0])
+    predicted = max(0.0, round(raw_pred))
 
 except Exception as e:
     st.error("❌ Prediction failed. Please check your inputs and try again.")
@@ -638,37 +602,56 @@ st.markdown(f"""
 </p>
 """, unsafe_allow_html=True)
 
-st.markdown("""
-<div style="background:{theme['surface_low']}; border:1px solid {theme['border']}; border-radius:12px;
-            padding:12px 18px; margin:4px 0 20px 0; display:flex; align-items:center; gap:10px;">
-    <span style="font-size:1.15rem">⚠️</span>
-    <span style="color:{theme['warning']}; font-family:'Inter',sans-serif; font-size:0.92rem; font-weight:600; line-height:1.4;">
-        Disclaimer: These numbers are custom, simulated projections for strategic planning. They do not represent guaranteed future outcomes.
-    </span>
+st.markdown(f"""
+<div style="background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(220,38,38,0.08));
+            border: 2px solid rgba(239,68,68,0.5); border-left: 5px solid #ef4444;
+            border-radius: 12px; padding: 16px 20px; margin: 4px 0 20px 0;
+            display: flex; align-items: center; gap: 14px;
+            box-shadow: 0 2px 12px rgba(239,68,68,0.15);
+            animation: pulse-border 2s ease-in-out infinite;">
+    <span style="font-size: 1.6rem; filter: drop-shadow(0 0 4px rgba(239,68,68,0.5));">⚠️</span>
+    <div>
+        <div style="color: #ef4444; font-family: 'Manrope', sans-serif; font-size: 0.95rem;
+                    font-weight: 800; letter-spacing: 0.03em; margin-bottom: 4px;">
+            DISCLAIMER
+        </div>
+        <div style="color: #fca5a5; font-family: 'Inter', sans-serif; font-size: 0.9rem;
+                    font-weight: 500; line-height: 1.5;">
+            These numbers are custom, simulated projections for <strong style="color:#f87171;">strategic planning only</strong>.
+            They do not represent guaranteed future outcomes.
+        </div>
+    </div>
 </div>
+<style>
+    @keyframes pulse-border {{
+        0%, 100% {{ border-color: rgba(239,68,68,0.5); }}
+        50% {{ border-color: rgba(239,68,68,0.8); }}
+    }}
+</style>
 """, unsafe_allow_html=True)
 
-delta_vs_mean = predicted - lag_val
-delta_pct = (delta_vs_mean / lag_val) * 100 if lag_val > 0 else 0
+baseline_val = float(baseline_val_input)
+delta_vs_mean = predicted - baseline_val
+delta_pct = (delta_vs_mean / baseline_val) * 100 if baseline_val > 0 else 0
 risk_color = "#4edea3" if delta_vs_mean >= 0 else "#ffb4ab"
 delta_sign = "+" if delta_vs_mean >= 0 else ""
 daily_avg = predicted / 7
-est_revenue = predicted * 1036  # $1,036 avg national spend per tourist (from historical data)
+est_revenue = predicted * 145  # $145 avg spend per tourist in Kandy district (accommodation, transport, food)
 est_revenue_lkr = est_revenue * 300  # ~300 LKR per USD
 
 
 # Demand level classification
-peak_val = baseline["max"] if baseline else 55000
+peak_val = baseline["max"] if baseline else 3113
 if predicted >= peak_val * 0.8:
     demand_level, demand_color, demand_desc = "VERY HIGH", "{theme['danger']}", "Demand is near or above historical peak levels. Maximum resource allocation recommended."
     demand_pct = min(100, int((predicted / peak_val) * 100))
-elif predicted >= lag_val * 1.2:
+elif predicted >= baseline_val * 1.2:
     demand_level, demand_color, demand_desc = "HIGH", "{theme['warning']}", "Demand is significantly above the baseline. Consider surge pricing and extra staffing."
     demand_pct = min(85, int((predicted / peak_val) * 100))
-elif predicted >= lag_val * 0.8:
+elif predicted >= baseline_val * 0.8:
     demand_level, demand_color, demand_desc = "MODERATE", "{theme['accent_dim']}", "Demand is within typical range. Standard operations should be sufficient."
     demand_pct = min(60, int((predicted / peak_val) * 100))
-elif predicted >= lag_val * 0.4:
+elif predicted >= baseline_val * 0.4:
     demand_level, demand_color, demand_desc = "LOW", "{theme['text_dim']}", "Demand is below average. Consider promotional campaigns to attract visitors."
     demand_pct = min(35, int((predicted / peak_val) * 100))
 else:
@@ -779,13 +762,13 @@ with res_col:
     st.markdown(breakdown_html, unsafe_allow_html=True)
 
 with gauge_col:
-    max_gauge = baseline["max"] * 1.5 if baseline else 60000
+    max_gauge = baseline["max"] * 1.5 if baseline else 5000
     fig_gauge = go.Figure(go.Indicator(
         mode="gauge+number+delta",
         value=predicted,
         domain={'x': [0, 1], 'y': [0, 1]},
-        title={'text': f"Weekly Arrivals<br><sub style='color:{theme['text_muted']}'>Yellow line = baseline momentum</sub>", 'font': {'color': theme['text_main'], 'size': 14}},
-        delta={'reference': lag_val, 'increasing': {'color': theme['accent2']}, 'decreasing': {'color': theme['danger']}},
+        title={'text': f"Weekly Kandy Arrivals<br><sub style='color:{theme['text_muted']}'>Yellow line = historical baseline</sub>", 'font': {'color': theme['text_main'], 'size': 14}},
+        delta={'reference': baseline_val, 'increasing': {'color': theme['accent2']}, 'decreasing': {'color': theme['danger']}},
         number={'font': {'color': theme['text_main'], 'size': 36}},
         gauge={
             'axis': {'range': [0, max_gauge], 'tickwidth': 1, 'tickcolor': theme['border'], 'tickfont': {'color': theme['text_dim']}},
@@ -794,13 +777,13 @@ with gauge_col:
             'borderwidth': 0,
             'bordercolor': theme['border'],
             'steps': [
-                {'range': [0, lag_val], 'color': "rgba(255,255,255,0.05)"},
-                {'range': [lag_val, max_gauge], 'color': "rgba(255,255,255,0.02)"}
+                {'range': [0, baseline_val], 'color': "rgba(255,255,255,0.05)"},
+                {'range': [baseline_val, max_gauge], 'color': "rgba(255,255,255,0.02)"}
             ],
             'threshold': {
                 'line': {'color': "#fde047", 'width': 3},
                 'thickness': 0.75,
-                'value': lag_val
+                'value': baseline_val
             }
         }
     ))
@@ -813,8 +796,8 @@ with gauge_col:
 
     # Comparison bar chart
     comp_labels = ["Your Scenario", "Baseline", "Peak (Esala)"]
-    peak_esala = baseline["max"] if baseline else 55000
-    comp_values = [predicted, lag_val, peak_esala]
+    peak_esala = baseline["max"] if baseline else 3113
+    comp_values = [predicted, baseline_val, peak_esala]
     comp_colors = [theme['accent_dim'], theme['text_dim'], "#fde047"]
 
     fig_bar = go.Figure(go.Bar(
@@ -835,38 +818,143 @@ with gauge_col:
 
 st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
 st.markdown(f"""
-<div style="color:{theme['accent2']}; font-family:'Manrope',sans-serif; font-size:1.3rem; font-weight:800; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-    🌊 Market Impact Bridge (Waterfall)
+<div style="color:{theme['accent2']}; font-family:'Manrope',sans-serif; font-size:1.3rem; font-weight:800; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
+    📊 What's Driving This Prediction?
 </div>
 <p style="color:{theme['text_muted']}; font-family:'Inter',sans-serif; font-size:0.95rem; margin:0 0 16px 0;">
-    Visualizes the exact delta shift separating your recent baseline momentum from the AI's final scenario prediction.
+    This chart breaks down <strong style="color:{theme['text_main']};">how each factor</strong> shifts the prediction
+    from the historical average. Green bars push demand <strong style="color:#4edea3;">up ↑</strong>,
+    red bars push demand <strong style="color:#f87171;">down ↓</strong>.
 </p>
 """, unsafe_allow_html=True)
 
-delta_vs_lag = predicted - lag_val
+# ── Build factor-by-factor impact breakdown ──
+delta_vs_baseline = predicted - baseline_val
+
+factor_labels = []
+factor_values = []
+
+# 1. Festival Impact
+if is_esala:
+    factor_labels.append("🐘 Esala Perahera")
+    factor_values.append(baseline_val * 1.5)
+elif is_esala_prep:
+    factor_labels.append("🎪 Esala Preparation")
+    factor_values.append(baseline_val * 0.6)
+elif is_vesak:
+    factor_labels.append("🪷 Vesak Festival")
+    factor_values.append(baseline_val * 0.4)
+elif is_poson:
+    factor_labels.append("🙏 Poson Perahera")
+    factor_values.append(baseline_val * 0.3)
+elif is_stny:
+    factor_labels.append("🎊 New Year Festival")
+    factor_values.append(baseline_val * 0.25)
+elif is_xmas:
+    factor_labels.append("🎄 Christmas / NYE")
+    factor_values.append(baseline_val * 0.5)
+
+# 2. Weather Impact
+if rainfall_mm > 200:
+    factor_labels.append("⛈️ Heavy Rainfall")
+    factor_values.append(-baseline_val * 0.25)
+elif rainfall_mm > 150:
+    factor_labels.append("🌧️ Monsoon Rain")
+    factor_values.append(-baseline_val * 0.12)
+elif rainfall_mm < 60:
+    factor_labels.append("☀️ Dry Weather")
+    factor_values.append(baseline_val * 0.05)
+
+# 3. Crisis Impact
+if is_econ:
+    factor_labels.append("💸 Economic Crisis")
+    factor_values.append(-baseline_val * 0.35)
+elif is_covid:
+    factor_labels.append("🦠 COVID-19")
+    factor_values.append(-baseline_val * 0.7)
+elif is_easter:
+    factor_labels.append("🚨 Security Crisis")
+    factor_values.append(-baseline_val * 0.5)
+
+# 4. Calendar / Season
+month_names = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+# Season multipliers for each month (based on Kandy tourism seasonality)
+season_multipliers = {
+    1:  0.08,   # Jan  — winter tourism boost
+    2:  0.03,   # Feb  — mild shoulder season
+    3:  0.02,   # Mar  — neutral
+    4:  0.04,   # Apr  — New Year season
+    5: -0.05,   # May  — monsoon onset
+    6: -0.05,   # Jun  — monsoon
+    7:  0.10,   # Jul  — peak pre-Esala
+    8:  0.10,   # Aug  — peak Esala
+    9: -0.06,   # Sep  — monsoon return
+    10:-0.05,   # Oct  — heavy monsoon
+    11:-0.03,   # Nov  — monsoon tail
+    12: 0.08,   # Dec  — holiday season
+}
+s_mult = season_multipliers.get(month, 0)
+factor_labels.append(f"📅 {month_names[month]} Season")
+factor_values.append(baseline_val * s_mult)
+
+# 5. Residual (unexplained by the above heuristics)
+explained = sum(factor_values)
+residual = delta_vs_baseline - explained
+if abs(residual) > 5:
+    factor_labels.append("🤖 AI Adjustment")
+    factor_values.append(residual)
+
+# Build waterfall
+measures = ["absolute"] + ["relative"] * len(factor_labels) + ["total"]
+x_labels = ["📌 Historical\nBaseline"] + factor_labels + ["🎯 AI\nPrediction"]
+y_values = [baseline_val] + factor_values + [predicted]
+
+text_vals = [f"{baseline_val:,.0f}"]
+for v in factor_values:
+    text_vals.append(f"{'+'if v>=0 else ''}{v:,.0f}")
+text_vals.append(f"{predicted:,.0f}")
+
 fig_waterfall = go.Figure(go.Waterfall(
     name="Impact", orientation="v",
-    measure=["absolute", "relative", "total"],
-    x=["Current Market", "AI Scenario Impact", "Predicted Potential"],
-    y=[lag_val, delta_vs_lag, predicted],
-    connector={"line":{"color":"rgba(255,255,255,0.1)", "width":1}},
-    decreasing={"marker":{"color": theme['danger']}},
-    increasing={"marker":{"color": theme['accent2']}},
-    totals={"marker":{"color": theme['accent_dim']}}
+    measure=measures,
+    x=x_labels, y=y_values,
+    text=text_vals, textposition="outside",
+    textfont=dict(color=theme['text_main'], size=12, family="Inter"),
+    connector={"line": {"color": "rgba(255,255,255,0.15)", "width": 1.5, "dash": "dot"}},
+    decreasing={"marker": {"color": "#f87171", "line": {"color": "#ef4444", "width": 1}}},
+    increasing={"marker": {"color": "#4edea3", "line": {"color": "#34d399", "width": 1}}},
+    totals={"marker": {"color": "#38bdf8", "line": {"color": "#0ea5e9", "width": 1}}},
+    hovertemplate="<b>%{x}</b><br>Value: %{y:,.0f} arrivals<extra></extra>"
 ))
 fig_waterfall.update_layout(
     showlegend=False,
-    plot_bgcolor="rgba(0,0,0,0)",
-    paper_bgcolor="rgba(0,0,0,0)",
-    margin=dict(t=20, b=20, l=20, r=20),
-    font=dict(color=theme['text_muted'])
+    plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+    height=420, margin=dict(t=30, b=80, l=50, r=30),
+    font=dict(color=theme['text_muted'], family="Inter"),
+    yaxis=dict(title="Weekly Arrivals", titlefont=dict(color=theme['text_dim'], size=12),
+               gridcolor="rgba(62,72,79,0.15)", tickfont=dict(color=theme['text_dim'], size=11)),
+    xaxis=dict(tickfont=dict(color=theme['text_muted'], size=11)),
+)
+fig_waterfall.add_hline(
+    y=baseline_val, line_dash="dash", line_color="rgba(253,224,71,0.4)", line_width=1,
+    annotation_text=f"Baseline: {baseline_val:,.0f}",
+    annotation_position="top right",
+    annotation_font=dict(color="#fde047", size=10),
 )
 st.plotly_chart(apply_plotly_theme(fig_waterfall), use_container_width=True)
+
+st.markdown(f"""
+<div style="display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin:-8px 0 8px 0;">
+    <span style="color:#4edea3; font-family:'Inter',sans-serif; font-size:0.8rem; font-weight:600;">🟢 Increases Demand</span>
+    <span style="color:#f87171; font-family:'Inter',sans-serif; font-size:0.8rem; font-weight:600;">🔴 Decreases Demand</span>
+    <span style="color:#38bdf8; font-family:'Inter',sans-serif; font-size:0.8rem; font-weight:600;">🔵 Baseline / Final Prediction</span>
+</div>
+""", unsafe_allow_html=True)
 
 # ── Understanding This Result ──
 st.markdown("<div style='height:14px'></div>", unsafe_allow_html=True)
 
-mean_val = baseline["mean"] if baseline else 15000
+mean_val = baseline["mean"] if baseline else 785.0
 pct_of_peak = (predicted / peak_val * 100) if peak_val > 0 else 0
 
 st.markdown(f"""
@@ -884,7 +972,7 @@ st.markdown(f"""
         </div>
         <div style="margin-bottom:8px;">
             <strong style="color:{theme['text_main']};">How does this compare?</strong><br>
-            This is <strong style="color:{risk_color};">{delta_sign}{delta_pct:.1f}%</strong> compared to your baseline of {lag_val:,} arrivals,
+            This is <strong style="color:{risk_color};">{delta_sign}{delta_pct:.1f}%</strong> compared to your baseline of {int(baseline_val):,} arrivals,
             and represents <strong style="color:{theme['warning']};">{pct_of_peak:.0f}%</strong> of the historical peak ({peak_val:,.0f}).
         </div>
         <div>
@@ -930,13 +1018,13 @@ elif rainfall_mm > 200:
     recs.append(("☔", "Severe Weather Protocol", f"Heavy rainfall ({rainfall_mm}mm) is deterring casual visits. Pivot marketing to emphasize cozy indoor luxury, spa experiences, and culinary events to capture the limited tourist pool ({predicted:,.0f} arrivals)."))
 elif temp_c > 32 and humidity_pct > 80:
     recs.append(("🥵", "Heat & Humidity Advisory", f"Extreme heat index detected. Promote early morning or late evening excursions. Ensure AC units are serviced and offer complimentary hydration stations in the lobby."))
-elif predicted > lag_val * 1.15:
+elif predicted > baseline_val * 1.15:
     recs.append(("📈", "Sustained High Demand", f"Demand is firmly above average (+{delta_pct:.1f}%). A great opportunity to upsell premium suites and capture additional revenue through guided tours to Peradeniya or Hanthana."))
 else:
     recs.append(("✅", "Standard Operations", f"Conditions indicate a stable, typical week ({predicted:,.0f} arrivals). Maintain standard staffing levels and focus on baseline customer satisfaction and preventative maintenance."))
 
 # Revenue tip
-recs.append(("💰", "Revenue Projection", f"At an estimated baseline spend of $1,036/tourist (national avg), this scenario generates roughly <b>${est_revenue:,.0f}</b> (≈ LKR {est_revenue_lkr/1000000:.1f}M) in national yield. Adjust pricing parity across OTAs to defend margins."))
+recs.append(("💰", "Revenue Projection", f"At an estimated Kandy district spend of $145/tourist (accommodation, transport, food), this scenario generates roughly <b>${est_revenue:,.0f}</b> (≈ LKR {est_revenue_lkr/1000000:.1f}M) in local economic yield. Adjust pricing parity across OTAs to defend margins."))
 
 
 if recs:
