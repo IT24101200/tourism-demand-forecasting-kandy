@@ -73,6 +73,7 @@ with st.container():
 
 BASE_DIR = Path(__file__).parent.parent
 
+# -------------------- DATA LOADING FUNCTION --------------------
 @st.cache_data
 def load_festival_weekly():
     df = pd.read_csv(BASE_DIR / "kandy_festival_demand_NOMISSING.csv")
@@ -120,9 +121,7 @@ if df_all.empty:
     st.info('ℹ️ No weather data available to display at the moment.')
     st.stop()
 
-
-
-
+# -------------------- SUMMARY METRICS --------------------
 
 total_weeks = len(df_all)
 monsoon_wks = int(df_all["is_monsoon_week"].sum()) if "is_monsoon_week" in df_all.columns else 0
@@ -133,6 +132,8 @@ st.markdown(f"""
 <div><span class="stat-pill">📅 {total_weeks} weeks shown</span><span class="stat-pill">🌧️ {monsoon_wks} monsoon weeks</span><span class="stat-pill">⛈️ {heavy_wks} heavy rain weeks (>{RAIN_THRESH} mm)</span><span class="stat-pill">🌡️ {avg_temp:.1f}°C avg temp</span></div><br>
 """, unsafe_allow_html=True)
 
+# -------------------- TREND VISUALIZATION --------------------
+# Shows rainfall + temperature over time
 st.markdown('<div class="section-header">📈 Temperature & Rainfall Trend</div>', unsafe_allow_html=True)
 
 fig = make_subplots(specs=[[{"secondary_y": True}]])
@@ -171,6 +172,8 @@ fig.update_layout(
 )
 st.plotly_chart(apply_plotly_theme(fig), use_container_width=True)
 
+# -------------------- CORRELATION SCATTER --------------------
+# Shows relationship between rainfall and tourist arrivals
 st.markdown('<div class="section-header">🔗 Rainfall vs Tourist Arrivals Correlation</div>', unsafe_allow_html=True)
 if "avg_weekly_rainfall_mm" in df_all.columns and "estimated_weekly_kandy_arrivals" in df_all.columns:
     fig_scatter = px.scatter(
@@ -198,7 +201,9 @@ if "avg_weekly_rainfall_mm" in df_all.columns and "estimated_weekly_kandy_arriva
         title=dict(font=dict(color="#dae2fd", family="Manrope"))
     )
     st.plotly_chart(apply_plotly_theme(fig_scatter), use_container_width=True)
-
+    
+# -------------------- ALERT SYSTEM --------------------
+# Shows weather alerts for upcoming weeks
 st.markdown("<br>", unsafe_allow_html=True)
 st.markdown('<div class="section-header">⚠️ Weather Impact Alerts</div>', unsafe_allow_html=True)
 future_alerts = df_all[df_all["week_start"] >= today].head(4)
