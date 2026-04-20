@@ -313,7 +313,7 @@ try:
             fig_imp = px.bar(
                 plot_df, x="Importance", y="Feature", orientation="h",
                 color="Color", color_discrete_map="identity",
-                title="Model Feature Weights (Random Forest / XGBoost)"
+                title="Model Feature Weights (XGBoost)"
             )
             fig_imp.update_layout(
                 height=400, margin=dict(l=0, r=20, t=40, b=0),

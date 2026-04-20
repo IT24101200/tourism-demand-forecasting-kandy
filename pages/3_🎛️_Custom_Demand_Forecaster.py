@@ -977,7 +977,7 @@ st.markdown(f"""
         </div>
         <div>
             <strong style="color:{theme['text_main']};">Model confidence:</strong>
-            The Random Forest model was trained on <strong style="color:#a78bfa;">574 weeks</strong> of real data.
+            The XGBoost model was trained on <strong style="color:#a78bfa;">574 weeks</strong> of real data.
             Predictions are most reliable when inputs are within historical norms.
             {f'<span style="color:{theme["danger"]};">⚠️ Extreme values detected — prediction may be less reliable.</span>' if (rainfall_mm > 200 or temp_c > 35 or temp_c < 18) else f'<span style="color:{theme["accent2"]};">✅ Input values are within trained data range.</span>'}
         </div>
@@ -1051,6 +1051,6 @@ st.markdown("<div style='height:30px'></div>", unsafe_allow_html=True)
 
 st.markdown("""
 <div style="text-align:center; color:{theme['text_dim']}; font-family:'Inter',sans-serif; font-size:0.85rem; padding:16px 0; margin-top:8px; border-top:1px solid rgba(62,72,79,0.15);">
-    🤖 Predictions use the Random Forest model trained on 574 weeks of historical data · DSS v1.0.0
+    🤖 Predictions use the XGBoost model trained on 574 weeks of historical data · DSS v1.0.0
 </div>
 """, unsafe_allow_html=True)
