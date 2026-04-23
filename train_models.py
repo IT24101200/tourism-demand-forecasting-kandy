@@ -642,7 +642,7 @@ def main():
 
         prediction_records.append({
             **base,
-            "model_name":        "random_forest",
+            "model_name":        "xgboost",
             "predicted_arrivals": xgb_val,
             "lower_bound":       max(0, xgb_val - margin),
             "upper_bound":       xgb_val + margin,

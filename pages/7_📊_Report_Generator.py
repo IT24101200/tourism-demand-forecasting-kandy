@@ -123,7 +123,7 @@ def load_raw_data():
     cdf = pd.DataFrame()
     if pred_path.exists():
         cdf = pd.read_csv(pred_path)
-        cdf = cdf[cdf["model_name"] == "xgboost"].copy()
+        cdf = cdf[cdf["model_name"].isin(["xgboost", "random_forest"])].copy()
 
         def unpack_feats(row):
             try:
@@ -206,7 +206,7 @@ def load_all_predictions():
         return pd.DataFrame(), pd.DataFrame()
     cdf = pd.read_csv(pred_path)
     cdf["week_start"] = pd.to_datetime(cdf["week_start"])
-    rf_df   = cdf[cdf["model_name"] == "xgboost"].sort_values("week_start").reset_index(drop=True)
+    rf_df   = cdf[cdf["model_name"].isin(["xgboost", "random_forest"])].sort_values("week_start").reset_index(drop=True)
     lstm_df = cdf[cdf["model_name"] == "lstm"].sort_values("week_start").reset_index(drop=True)
     return rf_df, lstm_df
 

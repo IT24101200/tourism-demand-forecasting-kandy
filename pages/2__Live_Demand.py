@@ -48,7 +48,7 @@ def load_data():
         preds_all = fetch_predictions()   # reads Supabase `predictions` table
         if not preds_all.empty:
             preds_all["week_start"] = pd.to_datetime(preds_all["week_start"])
-            rf_raw  = preds_all[preds_all["model_name"] == "xgboost"].copy()
+            rf_raw  = preds_all[preds_all["model_name"].isin(["xgboost", "random_forest"])].copy()
             lstm_df = preds_all[preds_all["model_name"] == "lstm"].copy()
 
             # Unpack features_used JSON for RF rows
@@ -71,7 +71,7 @@ def load_data():
     if cache_path.exists():
         cdf = pd.read_csv(cache_path)
         cdf["week_start"] = pd.to_datetime(cdf["week_start"])
-        rf_raw  = cdf[cdf["model_name"] == "xgboost"].copy()
+        rf_raw  = cdf[cdf["model_name"].isin(["xgboost", "random_forest"])].copy()
         lstm_df = cdf[cdf["model_name"] == "lstm"].copy()
 
         def unpack_feats(row):
